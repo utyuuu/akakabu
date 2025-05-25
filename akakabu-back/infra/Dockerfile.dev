@@ -1,0 +1,13 @@
+FROM node:20
+WORKDIR /app
+
+# package.json と package-lock.json だけ先にコピー
+COPY package*.json ./
+RUN npm install
+
+# その他のファイルをコピー
+COPY . .
+
+RUN npm install -g ts-node
+RUN npm run build
+EXPOSE 8080

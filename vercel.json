@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "akakabu-back/src/index.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "akakabu-front/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "akakabu-front/dist" }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "akakabu-back/src/index.ts" },
+    { "src": "/(.*)", "dest": "akakabu-front/dist/index.html" }
+  ]
+}
