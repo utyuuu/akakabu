@@ -1,0 +1,106 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./infra/Dockerfile.dev
+    volumes:
+      - .:/app
+    ports:
+      - '3003:3003'
+    tty: true
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      - supabase-db
+  supabase-db:
+    container_name: supabase-db
+    image: supabase/postgres:15.8.1.060
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "54321:5432"
+    volumes:
+      # データの永続化
+      - supabase-db:/var/lib/postgresql/data
+      - ./supabase/migrations/20240429_init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      # 実行するコマンド。ここがすべて！
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  auth:
+    container_name: supabase-auth
+    image: supabase/gotrue:v2.170.0
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      GOTRUE_DATABASE_URL: "postgres://postgres:postgres@supabase-db:5432/postgres"
+      GOTRUE_SITE_URL: "http://localhost:3000"
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      API_EXTERNAL_URL: "http://localhost:9999"
+    ports:
+      - "9999:9999"
+    networks:
+      - app-network
+    depends_on:
+      - supabase-db
+
+  storage:
+    container_name: supabase-storage
+    image: supabase/storage-api:v1.19.3
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      SUPABASE_STORAGE_DB_URL: "postgres://postgres:postgres@supabase-db:5432/postgres"
+      SUPABASE_STORAGE_SITE_URL: "http://localhost:3000"
+      SUPABASE_STORAGE_JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
+    depends_on:
+      - supabase-db
+    ports:
+      - "5001:5000"
+
+  rest:
+    container_name: supabase-rest
+    image: postgrest/postgrest:v12.2.8
+    restart: on-failure
+    env_file:
+      - .env
+    environment:
+      PGRST_DB_URI: "postgres://postgres:postgres@supabase-db:5432/postgres"
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
+    depends_on:
+      - supabase-db
+    ports:
+      - "3030:3000"
+
+  # vector:
+    # image: timberio/vector:0.21.1-alpine
+    # container_name: supabase_vector_akakabu-back
+    # restart: on-failure
+    # volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock
+    # networks:
+      # - app-network
+
+volumes:
+  supabase-db:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

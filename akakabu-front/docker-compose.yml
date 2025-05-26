@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    working_dir: "/app"
+    tty: true
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    ports:
+      - 3001:3001

@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "target": "ES6",                 // 出力されるJavaScriptのバージョン
+      "module": "NodeNext",            // モジュールシステム
+      "moduleResolution": "NodeNext", 
+      "strict": true,                  // 厳格な型チェック
+      "esModuleInterop": true,         // ESモジュールとの互換性
+      "skipLibCheck": true,            // ライブラリの型チェックをスキップ
+      "outDir": "./dist",              // コンパイル後の出力先
+      "rootDir": "./src",              // ソースコードのルートディレクトリ
+      "resolveJsonModule": true        // JSONファイルのインポートを許可
+    },
+    "include": ["src/**/*.ts"],        // コンパイル対象のファイル
+    "exclude": ["node_modules"]        // コンパイルから除外するファイル
+  }
