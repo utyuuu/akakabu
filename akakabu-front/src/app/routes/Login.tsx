@@ -105,9 +105,12 @@ const Login = () => {
       {error && <p className="text-center text-red-500">{error}</p>}
       <p>
         まだ登録がお済みでない方は{" "}
-        <a href="http://localhost:3001/signin" className="text-blue-700">
+       <span
+         onClick={() => navigate("/Signup")}
+          className="text-blue-700 cursor-pointer underline"
+       >
           こちら
-        </a>
+       </span>
       </p>
     </div>
   );

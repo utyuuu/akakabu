@@ -15,12 +15,14 @@ export class JQuantsClient {
   }
 
    // 一般的なAPI呼び出し用のメソッド
-   private async callApi(path: string, params: object = {}) {
+   private async callApi(path: string, params: Record<string, string | string[]> = {}) {
     return await this.tryWithRefresh(async () => {
+      console.log('Calling API with token:', this.config.token);
       const res = await axios.get(`https://api.jquants.com/${path}`, {
         headers: { Authorization: `Bearer ${this.config.token}` },
         params,
       });
+      console.log(`✅ APIレスポンス: ${path}`, res.data);
       return res.data || {};
     });
   }
@@ -32,9 +34,11 @@ export class JQuantsClient {
     } catch (err: any) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         console.warn('Access token expired, trying to refresh...');
+
         const newToken = await this.refreshAccessToken();
         if (newToken) {
           this.config.token = newToken;
+          console.log('Retrying request with new token:', newToken);
           return await fn(); // リトライ
         }
       }
@@ -43,30 +47,31 @@ export class JQuantsClient {
   }
 
 
-   private async refreshAccessToken(): Promise<string | null> {
+  private async refreshAccessToken(): Promise<string | null> {
     try {
-      const res = await axios.post('https://api.jquants.com/v1/token/auth_refresh', {
-        refresh_token: this.config.refreshToken,
-      });
-
+      const res = await axios.post(
+        `https://api.jquants.com/v1/token/auth_refresh?refreshtoken=${encodeURIComponent(this.config.refreshToken)}`
+      );
+      console.log('リフレッシュトークンのレスポンス:', res.data); 
+  
       const newToken = res.data?.id_token;
       if (!newToken) return null;
-
+  
       // supabaseに保存
       const { error } = await supabase
         .from('jquants_tokens')
-        .update({ id_token: newToken})
+        .update({ id_token: newToken })
         .eq('user_id', this.config.user_id); // userId を JQuantsUserConfig に含めておく必要あり
-
+  
       if (error) {
         console.error('Failed to update token in Supabase:', error);
       } else {
         console.log('New token saved to Supabase.');
       }
-
+  
       return newToken;
     } catch (err) {
-      console.error('Token refresh failed:', err);
+      console.error('リフレッシュトークンの取得失敗:', err);
       return null;
     }
   }
@@ -79,7 +84,17 @@ export class JQuantsClient {
 
   // 株価取得
   async getDailyStockPrices(date: string): Promise<any[]> {
-    return await this.callApi('v1/prices/daily_quotes', { date });
+    console.log('🚀 getDailyStockPrices called with date:', date);
+    const res = await this.callApi('v1/prices/daily_quotes', { date });
+    const quotes = res.daily_quotes;
+  
+    console.log('📦 getDailyStockPrices result:', quotes);
+  
+    if (!Array.isArray(quotes) || quotes.length === 0) {
+      throw new Error('直近の営業日価格を表示できません');
+    }
+  
+    return quotes;
   }
 
   // 営業日を取得
@@ -104,7 +119,14 @@ export class JQuantsClient {
       try {
         const formattedDate = date.replace(/-/g, "");
         console.log(`Trying daily_quotes for: ${formattedDate}`);
-        return await this.getDailyStockPrices(formattedDate);
+        const result = await this.getDailyStockPrices(formattedDate);
+  
+        if (result && result.length > 0) {
+          console.log(`データ取得成功: ${result.length}件`);
+          return result;
+        } else {
+          console.warn(`データなし: ${formattedDate}`);
+        }
       } catch (err: any) {
         if (axios.isAxiosError(err) && err.response?.status === 400) {
           console.warn(`400 error on ${date}, trying previous business day...`);
@@ -114,7 +136,7 @@ export class JQuantsClient {
         }
       }
     }
-
+  
     throw new Error('直近の営業日価格を表示できません');
   }
 
@@ -122,8 +144,6 @@ export class JQuantsClient {
   async getDividendYields(): Promise<any[]> {
     return await this.callApi('v1/dividends/dividend_yield');
   }
-
-  
   
   async getLatestAvailableStockPrices(): Promise<any[]> {
     return await this.getDailyStockPricesWithRetry();
@@ -131,14 +151,14 @@ export class JQuantsClient {
 
   async getPastWeekdays(): Promise<string[]> {
     const today = new Date();
-    const from = subDays(today, 85);
-    const to = subDays(today, 95); 
+    const from = subDays(today, 110);
+    const to = subDays(today, 130); 
     const daysInRange = eachDayOfInterval({ start: from, end: to }).reverse();
 
     for (const d of daysInRange) {
       if (isWeekend(d)) continue;
 
-      const dateStr = format(d, 'yyyy-MM-dd');
+      const dateStr = format(d, 'yyyyMMdd');
       try {
        const quotes = await this.getDailyStockPrices(dateStr);
        if (quotes.length > 0) {
@@ -150,7 +170,7 @@ export class JQuantsClient {
           while (candidateDates.length < 5) {
             back = subDays(back, 1);
             if (!isWeekend(back)) {
-              candidateDates.unshift(format(back, 'yyyy-MM-dd'));
+              candidateDates.unshift(format(back, 'yyyyMMdd'));
             }
           }
   
@@ -161,7 +181,7 @@ export class JQuantsClient {
           while (candidateDates.length < 11) {
             forward = addDays(forward, 1);
             if (!isWeekend(forward)) {
-              candidateDates.push(format(forward, 'yyyy-MM-dd'));
+              candidateDates.push(format(forward, 'yyyyMMdd'));
             }
           }
   
@@ -176,41 +196,28 @@ export class JQuantsClient {
     return [];
   }
 
-  private async callApiWithPagination(path: string): Promise<any[]> {
-    let allData: any[] = [];
-    let paginationKey: string | null = null;
-
-    do {
-      const fullPath: string= paginationKey
-        ? `${path}${path.includes('?') ? '&' : '?'}pagination_key=${paginationKey}`
-        : path;
-
-      const res = await axios.get(`https://api.jquants.com/${fullPath}`, {
-        headers: { Authorization: `Bearer ${this.config.token}` },
-      });
-
-      const json = res.data;
-      allData = allData.concat(json.info || json.listed_info || []);
-      paginationKey = json.pagination_key || null;
-    } while (paginationKey);
-
-    return allData;
-  }
-
   // 株情報取得
   async getStockInfo(code: string, date: string): Promise<StockInfo | null> {
     const [infoList, priceList, dividendList] = await Promise.all([
       this.getListedInfo(),
       date ? this.getDailyStockPrices(date) : this.getDailyStockPricesWithRetry(),
-      this.config.plan === 'pro_advanced' ? this.getDividendYields() : Promise.resolve([]),
+      this.isAdvancedProUser() ? this.getDividendYields() : Promise.resolve([]),
     ]);
-
-    const info = infoList.find((item) => item.Code === code);
+    console.log('📊 priceList:', priceList); 
+  
+    const normalizeCode = (c: string | number | null | undefined) => {
+      if (!c) return '';
+      return c.toString().padStart(5, '0');
+    };
+  
+    const normCode = normalizeCode(code);
+    const info = infoList.find((item) => normalizeCode(item.Code) === normCode);
     if (!info) return null;
-
-    const price = priceList.find((item) => item.LocalCode === code || item.Code === code);
-    const dividend = dividendList.find((item) => item.LocalCode === code || item.Code === code);
-
+  
+    const price = priceList.find((p) => normalizeCode(p.LocalCode) === normCode || normalizeCode(p.Code) === normCode);
+    console.log(`🔍 price match for ${normCode}:`, price);
+    const dividend = dividendList.find((d) => normalizeCode(d.LocalCode) === normCode || normalizeCode(d.Code) === normCode);
+  
     return {
       code,
       companyName: info.CompanyName,
@@ -218,6 +225,7 @@ export class JQuantsClient {
       market: info.MarketCodeName,
       close: price?.Close,
       dividend: dividend?.Dividend,
+      date,
     };
   }
 }

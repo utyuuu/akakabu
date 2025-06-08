@@ -5,7 +5,7 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
   const [token, setToken] = useState("");
   const [plan, setPlan] = useState("free");
   const [message, setMessage] = useState("");
-  const [username, setUsername] = useState("");
+  const [user_name, setUsername] = useState("");
   const [nameMessage, setNameMessage] = useState("");
 
   const apiBaseUrl = import.meta.env.VITE_API_URL;
@@ -30,7 +30,7 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
     try {
       await axios.patch(
         `${apiBaseUrl}/api/user`,
-        { username },
+        { user_name },
         { withCredentials: true }
       );
       setNameMessage("ユーザー名を変更しました。");
@@ -62,13 +62,13 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="J-Quants リフレッシュトークン"
+          placeholder="リフレッシュトークン"
           value={token}
           onChange={(e) => setToken(e.target.value)}
           required
-          className="bg-white"
+          className="bg-white border rounded"
         />
-        <select value={plan} onChange={(e) => setPlan(e.target.value)}>
+        <select value={plan} onChange={(e) => setPlan(e.target.value)} className="bg-white">
           <option value="free">無料</option>
           <option value="pro_light">Proライト</option>
           <option value="pro_standard">Proスタンダード</option>
@@ -82,7 +82,7 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
         </button>
         <p>{message}</p>
         <p>
-          まだ登録していない方は
+          まだj-quantsに登録していない方は
           <a href="https://jpx-jquants.com/?lang=ja" className="text-blue-700">
             こちら
           </a>
@@ -93,7 +93,7 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
         <input
           type="text"
           placeholder="新しいユーザー名"
-          value={username}
+          value={user_name}
           onChange={(e) => setUsername(e.target.value)}
           className="bg-white"
         />

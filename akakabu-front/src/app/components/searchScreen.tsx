@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 type Stock = {
-  stock_code: string;
-  company_name: string;
+  code: string;
+  companyName: string;
   close_price: number;
   fiscal_year: string;
+  date: string
 };
 const apiBaseUrl = import.meta.env.VITE_API_URL;
 
@@ -13,6 +14,7 @@ const SearchScreen = () => {
   const [keywords, setKeywords] = useState<string>("");
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [Item, setItem] = useState<Stock | null>(null);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") await handleSearch();
@@ -32,21 +34,20 @@ const SearchScreen = () => {
         { withCredentials: true }
       );
       setStocks(response.data);
-      console.log(response.data);
+    if (response.data.length > 0) {
+     setItem(response.data[0]); // ← 最初の1件を自動表示
+    } else {
+      setItem(null);
+    }
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response)
+        alert("リフレッシュトークンの期限が切れています。リフレッシュトークンを再度登録してください");
       console.error("axios error:", error);
     }
   };
 
-  // const filteredStocks = stocks.filter((stocks) => {
-  //   return stocks.code?.includes(keywords) || stocks.name?.includes(keywords);
-  // });
 
-  // useEffect(() => {
-  //   handleSearch();
-  // }, [keywords]);
-
-  const handleAddFavorit = async () => {
+  const handleAddFavorit = async (stock: Stock) => {
     try {
       const res = await axios.post(
         `${apiBaseUrl}/api/favorit`,
@@ -60,15 +61,15 @@ const SearchScreen = () => {
   };
 
   return (
-    <div>
-      <div className="w-full flex absolute top-30 left-115">
+    <div className="flex flex-col items-center w-full p-4">
+      <div className="w-full max-w-xl flex gap-2 mb-4">
         <input
           type="text"
           name="keywords"
           value={keywords}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          className="bg-white w-1/3"
+          className="bg-white flex-1 px-3 py-2 border rounded"
         />
         <button
           onClick={handleSearch}
@@ -78,42 +79,39 @@ const SearchScreen = () => {
         </button>
       </div>
       <div>
-        {/* 検索 */}
-        {Item && (
-          <div>
-            {Item.stock_code} - {Item.company_name} - {Item.close_price}
-          </div>
-        )}
-        <ul>
-          {stocks.map((stocks) => (
+        <ul className="bg-white border rounded w-full">
+        {stocks.map((stock) => (
+          <React.Fragment key={stock.code}>
             <li
-              key={stocks.stock_code}
-              onClick={() => setItem(stocks)}
+              onClick={() => setSelectedCode(stock.code)}
               className="cursor-pointer px-4 py-2 hover:bg-blue-100 border-b"
             >
-              {stocks.stock_code} - {stocks.company_name}
+              {stock.code} - {stock.companyName}
             </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        {/* 詳細表示 */}
-        {Item && (
-          <div style={{ borderTop: "1px solid #ccc", paddingTop: "1rem" }}>
-            <h3>詳細情報</h3>
-            <ul>
-              {Object.entries(Item).map(([key, value]) => (
-                <li key={key}>
-                  <strong>{key}:</strong>{" "}
-                  {typeof value === "object" && value !== null
-                    ? JSON.stringify(value)
-                    : String(value)}
-                </li>
-              ))}
-            </ul>
-            <button onClick={handleAddFavorit}>⭐️</button>
-          </div>
-        )}
+            {selectedCode === stock.code && (
+              <div className="bg-white px-4 py-3 border-b">
+                <h4 className="font-bold mb-2">詳細情報</h4>
+                <ul className="text-sm">
+                  {Object.entries(stock).map(([key, value]) => (
+                    <li key={key}>
+                      <strong>{key}:</strong>{" "}
+                      {typeof value === "object" && value !== null
+                        ? JSON.stringify(value)
+                        : String(value)}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleAddFavorit(stock)}
+                  className="text-yellow-500 text-xl mt-2 hover:scale-110 transition"
+                >
+                  ⭐️ お気に入りに追加
+                </button>
+              </div>
+            )}
+          </React.Fragment>
+        ))}
+      </ul>
       </div>
     </div>
   );

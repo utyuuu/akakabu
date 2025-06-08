@@ -16,19 +16,21 @@ export async function searchAndSummarize(config: JQuantsUserConfig, keyword: str
   const matched = allData.filter(item => (item.CompanyName || "").toLowerCase().includes(normalizedKeyword));
   if (matched.length === 0) return [];
 
+  // 安全な銘柄だけに限定
+    const safeMatched = matched.filter(info => info?.Code);
+    if (safeMatched.length === 0) return [];
+
   const [prices, dividends] = await Promise.all([
     // 株価取得
-    ['pro_light', 'pro_standard', 'pro_advanced'].includes(config.plan)
-    ? client.getDailyStockPricesWithRetry()
-    : Promise.resolve([]),
+    client.getDailyStockPricesWithRetry(),
     // 配当取得
     config.plan === 'pro_advanced'
-    ? client.getDividendYields()
-    : Promise.resolve([]),
+      ? client.getDividendYields()
+      : Promise.resolve([]),
   ]);
 
   const normalizeCode = (code: string | number | undefined | null) => {
-    if (code == null) throw new Error("Code is undefined or null");
+    if (code == null) return '';
     return code.toString().padStart(5, '0');
   };
 
