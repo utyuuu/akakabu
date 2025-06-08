@@ -135,11 +135,14 @@ const Signup = () => {
         登録
       </button>
       {error && <p className="text-center text-red-500">{error}</p>}
-      <p className="text-center">
+      <p>
         既に登録がお済みの方は{" "}
-        <a href="http://localhost:3001/login" className="text-blue-700">
+       <span
+         onClick={() => navigate("/Login")}
+          className="text-blue-700 cursor-pointer underline"
+       >
           こちら
-        </a>
+       </span>
       </p>
     </div>
   );

@@ -12,4 +12,5 @@ export type StockInfo = {
   market: string;
   close?: number;
   dividend?: number; //有料版のみ
+  date: string;
 };

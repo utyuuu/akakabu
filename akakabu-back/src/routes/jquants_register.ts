@@ -32,7 +32,7 @@ JRegisterRouter.post("/register", async (req, res) => {
 
    try{
     // J-Quantsからaccess_tokenを取得
-    const response = await axios.post(`https://api.jquants.com/v1/token/auth_refresh?refreshtoken=${refresh_token}`
+    const response = await axios.post(`https://api.jquants.com/v1/token/auth_refresh?refreshtoken=${encodeURIComponent(refresh_token)}`
       );
     const id_token = response.data.idToken;
     if(!id_token){
