@@ -139,7 +139,7 @@ const Signup = () => {
         既に登録がお済みの方は{" "}
        <span
          onClick={() => navigate("/Login")}
-          className="text-blue-700 cursor-pointer underline"
+          className="terxt-center text-blue-700 cursor-pointer underline"
        >
           こちら
        </span>
