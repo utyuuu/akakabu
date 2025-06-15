@@ -11,8 +11,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "static": {
-    "distDir": "dist"
-  }
+  ]
 }
