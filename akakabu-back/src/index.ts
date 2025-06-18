@@ -21,6 +21,12 @@ app.use(cors({
     origin: "https://akakabu.vercel.app",
     credentials: true,
 }));
+
+app.options("*", cors({
+    origin: "https://akakabu.vercel.app",
+    credentials: true,
+  }));
+  
 // JSON を解析するミドルウェア
 app.use(express.json());
 app.use(cookieParser());
