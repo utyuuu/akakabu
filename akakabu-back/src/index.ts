@@ -25,13 +25,13 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api",loginRouter)
-app.use("/api",usersRouter)
-app.use("/api",signupRouter)
-app.use("/api",checkRouter)
-app.use("/api/jquants",jquantsRouter)
-app.use("/api/jquants",JRegisterRouter)
-app.use("/api",favoritesRouter)
+app.use("/",loginRouter)
+app.use("/",usersRouter)
+app.use("/",signupRouter)
+app.use("/",checkRouter)
+app.use("/jquants",jquantsRouter)
+app.use("/jquants",JRegisterRouter)
+app.use("/",favoritesRouter)
 
 // サーバー起動
 // app.listen(3003, '0.0.0.0', () => {
