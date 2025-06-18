@@ -34,6 +34,7 @@
     "@types/axios": "0.14.4",
     "nodemon": "^3.0.1",
     "prettier": "^3.5.3",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "@vercel/node": "5.2.2"
   }
 }
