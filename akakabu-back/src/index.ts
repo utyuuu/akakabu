@@ -26,18 +26,18 @@ app.options("*", cors({
     origin: "https://akakabu.vercel.app",
     credentials: true,
   }));
-  
+
 // JSON を解析するミドルウェア
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/",loginRouter)
-app.use("/",usersRouter)
-app.use("/",signupRouter)
-app.use("/",checkRouter)
-app.use("/jquants",jquantsRouter)
-app.use("/jquants",JRegisterRouter)
-app.use("/",favoritesRouter)
+app.use("/api",loginRouter)
+app.use("/api",usersRouter)
+app.use("/api",signupRouter)
+app.use("/api",checkRouter)
+app.use("/api/jquants",jquantsRouter)
+app.use("/api/jquants",JRegisterRouter)
+app.use("/api",favoritesRouter)
 
 // サーバー起動
 // app.listen(3003, '0.0.0.0', () => {
