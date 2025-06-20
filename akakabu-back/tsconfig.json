@@ -11,5 +11,5 @@
       "resolveJsonModule": true        // JSONファイルのインポートを許可
     },
     "include": ["src/**/*.ts"],        // コンパイル対象のファイル
-    "exclude": ["node_modules", "api"]        // コンパイルから除外するファイル
+    "exclude": ["node_modules"]        // コンパイルから除外するファイル
   }

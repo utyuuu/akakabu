@@ -9,9 +9,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "npm run build && node dist/index.js"
+    "build": "NODE_ENV=development tsc",
+    "start": "NODE_ENV=production node dist/index.js",
+    "dev": "npm run build && npm run start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
