@@ -1,4 +1,4 @@
-import {Router, Request} from "express";
+import { Router, Request, Response } from "express";
 import supabase from "./../supabaseClient.js";
 import axios from 'axios';
 
@@ -18,7 +18,7 @@ const getUserFromCookie = async (req: Request)=> {
   return user;
 };
 // POST /api/jquants/sregister
-JRegisterRouter.post("/register", async (req, res) => {
+JRegisterRouter.post("/register", async (req: Request, res: Response) => {
   const user = await getUserFromCookie(req);
   if (!user) {
     return res.status(401).json({ error: "認証されていません" });
