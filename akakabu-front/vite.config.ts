@@ -9,7 +9,4 @@ const postcss = require(path.resolve(__dirname, "./postcss.config.cjs"));
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
-  css: {
-    postcss,
-  },
 });
