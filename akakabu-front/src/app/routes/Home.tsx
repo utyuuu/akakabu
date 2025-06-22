@@ -31,7 +31,7 @@ const Home = () => {
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`border text-center w-1/4 ${activeTab === "settings" ? "bg-green-100 text-blag" : "bg-white"}`}
+          className={`border text-center w-1/4 ${activeTab === "settings" ? "bg-green-100 text-black" : "bg-white"}`}
         >
           ⚙ 設定
         </button>
