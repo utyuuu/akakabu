@@ -3,7 +3,10 @@ import tailwindForms from "@tailwindcss/forms";
 
 export default {
   darkMode: ["class", '[data-mode="dark"]'],
-  content: ["./src/**/*.{js,jsx,ts,tsx,html}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx,html}"
+  ],
   theme: {
     extend: {
       fontFamily: {
