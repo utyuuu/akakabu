@@ -41,7 +41,7 @@ signupRouter.post("/signup", async (req,res) => {
    res.cookie("sb-access-token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "none",
     maxAge: 60 * 60 * 0.5 * 1000,
   });
 

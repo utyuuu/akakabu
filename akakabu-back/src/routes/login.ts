@@ -28,6 +28,7 @@ loginRouter.post("/login", async (req,res) => {
     sameSite: "none",
     maxAge: 60 * 60 * 0.5 * 1000,
   });
+  console.log("NODE_ENV:", process.env.NODE_ENV);
 
   return res.status(200).json({data: authData.user});
 
