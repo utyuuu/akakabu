@@ -24,7 +24,7 @@ loginRouter.post("/login", async (req,res) => {
 
    res.cookie("sb-access-token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: true,
     sameSite: "none",
     maxAge: 60 * 60 * 0.5 * 1000,
   });
