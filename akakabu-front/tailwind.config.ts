@@ -3,17 +3,15 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   important: true,
   darkMode: ["class", '[data-mode="dark"]'],
-  content: {
-    files: [
-      "./index.html",
-      "./src/**/*.{html,js,jsx,ts,tsx}",
-    ],
-    safelist: [
-      "bg-green-100",
-      "bg-white",
-      "text-black",
-    ],
-  }as any,
+  content: [
+    "./index.html",
+    "./src/**/*.{html,js,jsx,ts,tsx}",
+  ],
+  safelist: [
+    "bg-green-100",
+    "bg-white",
+    "text-black",
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -35,6 +33,6 @@ const config: Config = {
   },
   plugins: [require("@tailwindcss/forms")],
   
-};
+}as any;
 
 export default config;
