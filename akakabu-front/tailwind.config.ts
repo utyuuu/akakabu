@@ -1,11 +1,11 @@
 import type { Config } from "tailwindcss";
-import tailwindForms from "@tailwindcss/forms";
 
-export default {
+const config: Config = {
+  important: true,
   darkMode: ["class", '[data-mode="dark"]'],
   content: [
     "./index.html",
-    "./src/**/*.{html,js,jsx,ts,tsx}"
+    "./src/**/*.{html,js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
@@ -21,11 +21,12 @@ export default {
           '"Noto Color Emoji"',
         ],
       },
-
       screens: {
         xs: "350px",
       },
     },
   },
-  plugins: [tailwindForms],
-} satisfies Config;
+  plugins: [require("@tailwindcss/forms")],
+};
+
+export default config;
