@@ -135,7 +135,7 @@ const Signup = () => {
         登録
       </button>
       {error && <p className="text-center text-red-500">{error}</p>}
-      <p>
+      <p className="text-center">
         既に登録がお済みの方は{" "}
        <span
          onClick={() => navigate("/Login")}
