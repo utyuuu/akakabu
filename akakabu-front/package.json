@@ -9,7 +9,8 @@
     "build": "vite build",
     "vercel-build": "vite build",
     "serve": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "@types/react": "^19.0.8",
