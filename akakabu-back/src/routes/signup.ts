@@ -43,14 +43,16 @@ signupRouter.post("/signup", async (req,res) => {
     }
     console.log("insertError", insertError);
 
-    res.cookie("sb-access-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 60 * 60 * 0.5 * 1000,
-    });
+    if (token) {
+      res.cookie("sb-access-token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 60 * 60 * 0.5 * 1000,
+      });
+    }
 
-    res.status(200).json({message: "登録成功！！"});
+    res.status(200).json({message: "メール確認が必要です"});
 
   } catch (error:any) {
     console.error("signupRouter catch error:", error);
