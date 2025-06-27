@@ -80,13 +80,20 @@ const Signup = () => {
       return;
     }
 
+    if (result.sucsess === "メール確認が必要です") {
+      alert("登録成功！メールを確認してください。");
+      navigate("/Login");
+    } else {
+      setError(result.message || "登録に失敗しました");
+    }
+
     // 登録成功
-    navigate("/");
+    // navigate("/");
   };
 
   return (
     <div className="bg-white w-full max-w-lg mx-auto px-10">
-      <h2 className="text-center text-gray-700">サインイン</h2>
+      <h2 className="text-center text-gray-700">サインアップ</h2>
       <p className="text-center text-gray-700">メールアドレス</p>
       <input
         type="text"
