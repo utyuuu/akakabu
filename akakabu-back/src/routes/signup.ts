@@ -11,6 +11,10 @@ signupRouter.post("/signup", async (req,res) => {
       return res.status(400).json({ message: "パスワードが必要です" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: "6文字以上のパスワードが必要です" });
+    }
+
     // サインアップ
     const { data:authData, error:authError } = await supabase.auth.signUp({
       email,
