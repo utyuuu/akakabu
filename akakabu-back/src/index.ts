@@ -10,7 +10,7 @@ import jquantsRouter from "./routes/jquants_search.js";
 import JRegisterRouter from "./routes/jquants_register.js";
 import favoritesRouter from "./routes/favorit.js";
 import path from "path";
-import { fileURLToPath } from "url";
+
 
 dotenv.config();
 const app = express();
@@ -41,13 +41,6 @@ app.use("/api/jquants",jquantsRouter)
 app.use("/api/jquants",JRegisterRouter)
 app.use("/api",favoritesRouter)
 
-
-app.use(express.static(path.resolve(__dirname, "dist")));
-
-// API 以外のすべてのルートに対して index.html を返す
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "dist", "index.html"));
-});
 
 // サーバー起動
 app.listen(10000, '0.0.0.0', () => {
