@@ -41,9 +41,6 @@ app.use("/api/jquants",jquantsRouter)
 app.use("/api/jquants",JRegisterRouter)
 app.use("/api",favoritesRouter)
 
-// リロード対策
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.resolve(__dirname, "dist")));
 
