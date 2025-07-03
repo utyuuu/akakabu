@@ -6,20 +6,23 @@
       "use": "@vercel/static-build"
     }
   ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ],
-  "redirects": [
+  "routes": [
     {
-      "source": "/(.*)",
+      "src": "/(.*)",
       "has": [
         {
           "type": "host",
           "value": "akakabu.vercel.app"
         }
       ],
-      "destination": "https://www.akakabu-project.com/:1",
-      "permanent": true
+      "status": 308,
+      "headers": {
+        "Location": "https://www.akakabu-project.com/$1"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/"
     }
   ]
 }
