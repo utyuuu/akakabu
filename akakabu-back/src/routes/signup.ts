@@ -52,6 +52,7 @@ signupRouter.post("/signup", async (req,res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
+        domain: ".akakabu-project.com",
         maxAge: 60 * 60 * 0.5 * 1000,
       });
     }
