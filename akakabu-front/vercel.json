@@ -8,5 +8,18 @@
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
+  ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "akakabu.vercel.app"
+        }
+      ],
+      "destination": "https://www.akakabu-project.com/:1",
+      "permanent": true
+    }
   ]
 }
