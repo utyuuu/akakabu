@@ -20,12 +20,12 @@ const require = createRequire(import.meta.url);
 const cookieParser = require("cookie-parser");
 
 app.use(cors({
-    origin: "https://akakabu-project.com",
+    origin: "https://www.akakabu-project.com",
     credentials: true,
 }));
 
 app.options("*", cors({
-    origin: "https://akakabu-project.com",
+    origin: "https://www.akakabu-project.com",
     credentials: true,
   }));
 
