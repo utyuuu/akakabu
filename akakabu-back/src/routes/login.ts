@@ -26,6 +26,7 @@ loginRouter.post("/login", async (req,res) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    domain: ".akakabu-project.com",
     maxAge: 60 * 60 * 0.5 * 1000,
   });
   console.log("NODE_ENV:", process.env.NODE_ENV);

@@ -15,17 +15,17 @@ import path from "path";
 dotenv.config();
 const app = express();
 console.log("Loaded PORT:", process.env.PORT);
-const PORT = process.env.PORT || 10000;
+const PORT = Number(process.env.PORT) || 10000;
 const require = createRequire(import.meta.url);
 const cookieParser = require("cookie-parser");
 
 app.use(cors({
-    origin: "https://akakabu.vercel.app",
+    origin: "https://akakabu-project.com",
     credentials: true,
 }));
 
 app.options("*", cors({
-    origin: "https://akakabu.vercel.app",
+    origin: "https://akakabu-project.com",
     credentials: true,
   }));
 
@@ -43,6 +43,6 @@ app.use("/api",favoritesRouter)
 
 
 // サーバー起動
-app.listen(10000, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
