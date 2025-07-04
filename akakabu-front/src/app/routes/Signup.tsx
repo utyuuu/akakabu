@@ -80,7 +80,7 @@ const Signup = () => {
       return;
     }
 
-    if (result.sucsess === "メール確認が必要です") {
+    if (result.success === "メール確認が必要です") {
       alert("登録成功！メールを確認してください。");
       navigate("/Login");
     } else {
