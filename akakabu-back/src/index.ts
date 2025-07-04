@@ -9,7 +9,6 @@ import checkRouter from "./routes/check.js";
 import jquantsRouter from "./routes/jquants_search.js";
 import JRegisterRouter from "./routes/jquants_register.js";
 import favoritesRouter from "./routes/favorit.js";
-import path from "path";
 
 
 dotenv.config();
