@@ -22,9 +22,12 @@ signupRouter.post("/signup", async (req,res) => {
     });
 
     if (authError || !authData.user) {
-      return res.status(400).json({message: "認証失敗", error: authError});
+      console.error("Signup authError:", authError?.message);
+      return res.status(400).json({
+        message: authError?.message || "認証失敗",
+        error: authError,
+      });
     }
-    console.log("authError", authError);
 
     const user_id = authData.user.id;
     const token = authData.session?.access_token;
