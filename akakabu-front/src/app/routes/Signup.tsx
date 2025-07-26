@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { validateEmail, validatePassword, validateUsername } from "../utils/errorHandler";
 
 const Signup = () => {
   const [email, setEmail] = useState<string>("");
@@ -7,16 +9,12 @@ const Signup = () => {
   const [password1, setPassword1] = useState<string>("");
   const [password2, setPassword2] = useState<string>("");
   const [error, setError] = useState<string>("");
-
-  const apiBaseUrl = import.meta.env.VITE_API_URL;
-
-  // メールアドレスの正規表現
-  const emailRegex =
-    /^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") return handleRegister();
   };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     switch (name) {
@@ -35,122 +33,166 @@ const Signup = () => {
       default:
         break;
     }
+    // エラーメッセージをクリア
+    if (error) setError("");
   };
 
   const navigate = useNavigate();
+  const { signup } = useAuth();
+
   const handleRegister = async () => {
     setError("");
-    // メールアドレスが正しい形式かチェック
-    if (!emailRegex.test(email)) {
-      setError("メールアドレスの形式が正しくありません");
+
+    // バリデーション
+    if (!email.trim()) {
+      setError("メールアドレスを入力してください。");
       return;
     }
-    // ユーザー名が空でないかチェック
-    if (user === "") {
-      setError("ユーザー名を入力してください");
+
+    if (!validateEmail(email)) {
+      setError("メールアドレスの形式が正しくありません。");
       return;
     }
-    // パスワードが一致するかチェック
-    if (password1.trim() === "" || password2.trim() === "") {
-      setError("パスワードを入力してください");
+
+    if (!user.trim()) {
+      setError("ユーザー名を入力してください。");
       return;
     }
+
+    const usernameValidation = validateUsername(user);
+    if (!usernameValidation.isValid) {
+      setError(usernameValidation.message);
+      return;
+    }
+
+    if (!password1.trim() || !password2.trim()) {
+      setError("パスワードを入力してください。");
+      return;
+    }
+
+    const passwordValidation = validatePassword(password1);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.message);
+      return;
+    }
+
     if (password1.trim() !== password2.trim()) {
-      setError("パスワードが一致していません");
+      setError("パスワードが一致していません。");
       return;
     }
 
-    const pyload = {
-      email: email,
-      user_name: user,
-      password: password1,
-    };
+    setIsSigningUp(true);
 
-    const response = await fetch(`${apiBaseUrl}/api/signup`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pyload),
-    });
+    try {
+      const result = await signup(email.trim(), user.trim(), password1);
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      setError(result.message || "登録に失敗しました");
-      return;
-    }
-
-    if (result.success === "メール確認が必要です") {
+      if (result.success) {
       alert("登録成功！メールを確認してください。");
       navigate("/Login");
     } else {
-      setError(result.message || "登録に失敗しました");
+        setError(result.message);
+      }
+    } catch (error) {
+      setError("登録に失敗しました");
+    } finally {
+      setIsSigningUp(false);
     }
-
-    // 登録成功
-    // navigate("/");
   };
 
   return (
     <div className="bg-white w-full max-w-lg mx-auto px-10">
-      <h2 className="text-center text-gray-700">サインアップ</h2>
-      <p className="text-center text-gray-700">メールアドレス</p>
+      <h2 className="text-center text-gray-700 text-2xl font-bold mb-6">サインアップ</h2>
+      
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            メールアドレス
+          </label>
       <input
-        type="text"
+            id="email"
+            type="email"
         name="email"
         value={email}
         onChange={handleChange}
+            disabled={isSigningUp}
         placeholder="メールアドレスを入力してください"
-        className="text-center mx-auto w-full border-b py-1 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
       />
+        </div>
 
-      <p className="text-center text-gray-700">ユーザー名</p>
+        <div>
+          <label htmlFor="user" className="block text-sm font-medium text-gray-700 mb-1">
+            ユーザー名
+          </label>
       <input
+            id="user"
         type="text"
         name="user"
         value={user}
         onChange={handleChange}
+            disabled={isSigningUp}
         placeholder="ユーザー名を入力してください"
-        className="text-center placeholder-opacity-50 mx-auto w-full border-b py-1 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
       />
+        </div>
 
-      <p className="text-center text-gray-700">パスワード</p>
+        <div>
+          <label htmlFor="password1" className="block text-sm font-medium text-gray-700 mb-1">
+            パスワード
+          </label>
       <input
+            id="password1"
         type="password"
         name="password1"
         value={password1}
         onChange={handleChange}
-        placeholder="パスワードを入力してください"
-        className="text-center placeholder-opacity-50 mx-auto w-full border-b py-1 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
+            disabled={isSigningUp}
+            placeholder="パスワードを入力してください（8文字以上）"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
       />
+        </div>
 
-      <p className="text-center text-gray-700">パスワード(確認用)</p>
+        <div>
+          <label htmlFor="password2" className="block text-sm font-medium text-gray-700 mb-1">
+            パスワード（確認用）
+          </label>
       <input
+            id="password2"
         type="password"
         name="password2"
         value={password2}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+            disabled={isSigningUp}
         placeholder="もう一度パスワードを入力してください"
-        className="text-center placeholder-opacity-50 mx-auto w-full border-b py-1 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
       />
+        </div>
 
       <button
         onClick={handleRegister}
-        className="block mx-auto bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+          disabled={isSigningUp}
+          className="w-full bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
       >
-        登録
+          {isSigningUp ? "登録中..." : "登録"}
       </button>
-      {error && <p className="text-center text-red-500">{error}</p>}
-      <p className="text-center">
+
+        {error && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            {error}
+          </div>
+        )}
+
+        <p className="text-center text-sm text-gray-600">
         既に登録がお済みの方は{" "}
        <span
          onClick={() => navigate("/Login")}
-          className="terxt-center text-blue-700 cursor-pointer underline"
+            className="text-blue-700 cursor-pointer underline hover:text-blue-800"
        >
           こちら
        </span>
       </p>
+      </div>
     </div>
   );
 };

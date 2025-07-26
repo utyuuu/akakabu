@@ -1,11 +1,12 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
-import useAuth from "./../hooks/useAuth";
+import { useAuth } from "./../hooks/useAuth";
 import { JSX } from "react";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { user, load } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (load) return <div>読み込み中</div>;
+  if (loading) return <div>読み込み中</div>;
   if (!user) return <Navigate to="/login" />;
 
   return children;
