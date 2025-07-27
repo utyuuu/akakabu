@@ -1,11 +1,12 @@
 import express from "express";
 import supabase from "./../supabaseClient.js";
-import { authenticateUser } from "./../middleware/auth.js"
+import { authenticateSupabaseUser } from "../middleware/supabaseAuth.js";
 
-const usersRouter = express.Router();
+export const usersRouter = express.Router();
 
-usersRouter.patch("/users", authenticateUser, async (req, res) => {
-    const userId = res.locals.userId;
+// ユーザー名変更
+usersRouter.patch("/users", authenticateSupabaseUser, async (req, res) => {
+  const userId = req.user.id;
     const { user_name } = req.body;
   
     const { error } = await supabase
@@ -21,8 +22,8 @@ usersRouter.patch("/users", authenticateUser, async (req, res) => {
   });
   
   // アカウント削除
-  usersRouter.delete("/users", authenticateUser, async (req, res) => {
-    const userId = res.locals.userId;
+usersRouter.delete("/users", authenticateSupabaseUser, async (req, res) => {
+  const userId = req.user.id;
   
     // Supabase Admin API を使って削除
     const { error } = await supabase.auth.admin.deleteUser(userId);
@@ -32,6 +33,4 @@ usersRouter.patch("/users", authenticateUser, async (req, res) => {
     }
   
     return res.status(200).json({ message: "退会完了" });
-  });
-
-export default usersRouter;
+  }); 

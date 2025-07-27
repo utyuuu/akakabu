@@ -1,15 +1,17 @@
 import {Router, Request, Response} from "express";
 import supabase from "./../supabaseClient.js"
+import { authenticateSupabaseUser } from "../middleware/supabaseAuth.js";
 
-const favoritesRouter = Router();
+export const favoritesRouter = Router();
 
-favoritesRouter.post("/favorites", async(req:Request, res:Response)=> {
+favoritesRouter.post("/favorites", authenticateSupabaseUser, async(req:Request, res:Response)=> {
     try{
         const { Item }=req.body;
         if (!Item){return res.status(400).json({ message: "Itemが送られていません" });}
+        const user = req.user;
         const { error: insertError } = await supabase
         .from("favorites")
-        .insert([Item]);
+        .insert([{ ...Item, user_id: user.id }]);
         if (insertError) {
             console.error("Supabase Insert Error:", insertError);
             return res.status(500).json({ message: "DB登録エラー" });
@@ -21,6 +23,3 @@ favoritesRouter.post("/favorites", async(req:Request, res:Response)=> {
           return res.status(500).json({ message: "サーバー内部エラー" });
         }
 });
-
-
-export default favoritesRouter;

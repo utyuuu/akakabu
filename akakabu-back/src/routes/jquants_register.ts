@@ -1,25 +1,12 @@
 import { Router, Request, Response } from "express";
 import supabase from "./../supabaseClient.js";
 import axios from 'axios';
+import { authenticateSupabaseUser } from "../middleware/supabaseAuth.js";
 
-const JRegisterRouter = Router();
-
-//  Cookieからユーザー情報を取得する関数
-const getUserFromCookie = async (req: Request)=> {
-  const token = req.cookies["sb-access-token"];
-  if (!token) return null;
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
-
-  if (error || !user) return null;
-  return user;
-};
-// POST /api/jquants/sregister
-JRegisterRouter.post("/register", async (req: Request, res: Response) => {
-  const user = await getUserFromCookie(req);
+export const JRegisterRouter = Router();
+// POST /api/jquants/register
+JRegisterRouter.post("/register", authenticateSupabaseUser, async (req: Request, res: Response) => {
+  const user = req.user;
   if (!user) {
     return res.status(401).json({ error: "認証されていません" });
   }
@@ -62,5 +49,3 @@ JRegisterRouter.post("/register", async (req: Request, res: Response) => {
     });
   }
 });
-
-export default JRegisterRouter;

@@ -1,41 +1,88 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { api } from "../utils/apiClient";
+import { getErrorMessage, logError, validateUsername } from "../utils/errorHandler";
+import { useAuth } from "../hooks/useAuth";
 
-const SettingsScreen = ({ userId }: { userId: string }) => {
+export const SettingsScreen = () => {
+  const { user } = useAuth();
   const [token, setToken] = useState("");
   const [plan, setPlan] = useState("free");
   const [message, setMessage] = useState("");
   const [user_name, setUsername] = useState("");
   const [nameMessage, setNameMessage] = useState("");
-
-  const apiBaseUrl = import.meta.env.VITE_API_URL;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChangingUsername, setIsChangingUsername] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // リフレッシュトークン登録
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // バリデーション
+    if (!token.trim()) {
+      setMessage("リフレッシュトークンを入力してください。");
+      return;
+    }
+
+    if (!plan) {
+      setMessage("プランを選択してください。");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage("");
+
     try {
-      await axios.post(
-        `${apiBaseUrl}/api/jquants/register`,
-        { refresh_token: token, plan },
-        { withCredentials: true }
-      );
+      await api.post('/api/jquants/register', { 
+        refresh_token: token, 
+        plan 
+      }, { 
+        timeout: 10000 // 10秒タイムアウト
+      });
+
       setMessage("保存成功！");
-    } catch (err) {
-      setMessage("保存失敗");
+      setToken(""); // 成功後にトークンをクリア
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      setMessage(`保存失敗: ${errorMessage}`);
+      logError('J-Quants登録', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // ユーザー名変更
   const handleChangeUsername = async () => {
+    // バリデーション
+    if (!user_name.trim()) {
+      setNameMessage("ユーザー名を入力してください。");
+      return;
+    }
+
+    const usernameValidation = validateUsername(user_name);
+    if (!usernameValidation.isValid) {
+      setNameMessage(usernameValidation.message);
+      return;
+    }
+
+    setIsChangingUsername(true);
+    setNameMessage("");
+
     try {
-      await axios.patch(
-        `${apiBaseUrl}/api/user`,
-        { user_name },
-        { withCredentials: true }
-      );
+      await api.patch('/api/users', { 
+        user_name: user_name.trim() 
+      }, { 
+        timeout: 10000
+      });
+
       setNameMessage("ユーザー名を変更しました。");
-    } catch (err) {
-      setNameMessage("変更に失敗しました。");
+      setUsername(""); // 成功後にフィールドをクリア
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      setNameMessage(`変更に失敗しました: ${errorMessage}`);
+      logError('ユーザー名変更', error);
+    } finally {
+      setIsChangingUsername(false);
     }
   };
 
@@ -44,80 +91,131 @@ const SettingsScreen = ({ userId }: { userId: string }) => {
     const confirmed = window.confirm(
       "本当に退会しますか？この操作は取り消せません。"
     );
+    
     if (!confirmed) return;
 
+    setIsDeletingAccount(true);
+
     try {
-      await axios.delete(`${apiBaseUrl}/api/user`, {
-        withCredentials: true,
+      await api.delete('/api/users', { 
+        timeout: 15000 // 退会処理は少し長めのタイムアウト
       });
+
       alert("退会しました。ご利用ありがとうございました。");
-      // ログアウトやトップページへの遷移（例: window.location.href = "/"）
-    } catch (err) {
-      alert("退会処理に失敗しました。");
+      // ログアウトやトップページへの遷移
+      window.location.href = "/";
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      alert(`退会処理に失敗しました: ${errorMessage}`);
+      logError('アカウント削除', error);
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="リフレッシュトークン"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          required
-          className="bg-white border rounded"
-        />
-        <select value={plan} onChange={(e) => setPlan(e.target.value)} className="bg-white">
-          <option value="free">無料</option>
-          <option value="pro_light">Proライト</option>
-          <option value="pro_standard">Proスタンダード</option>
-          <option value="pro_advanced">Proアドバンス</option>
-        </select>
+    <div className="max-w-md mx-auto space-y-6">
+      {/* 現在のユーザー情報表示 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h2 className="font-semibold text-lg mb-2 text-blue-800">現在のユーザー情報</h2>
+        <div className="space-y-2 text-sm">
+          <div><strong>ユーザーID:</strong> {user?.id}</div>
+          <div><strong>ユーザー名:</strong> {user?.user_name}</div>
+          <div><strong>登録日:</strong> {user?.created_at ? new Date(user.created_at).toLocaleDateString('ja-JP') : 'N/A'}</div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
+            リフレッシュトークン
+          </label>
+          <input
+            id="token"
+            type="text"
+            placeholder="リフレッシュトークン"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            required
+            disabled={isSubmitting}
+            className="w-full bg-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label htmlFor="plan" className="block text-sm font-medium text-gray-700 mb-1">
+            プラン
+          </label>
+          <select 
+            id="plan"
+            value={plan} 
+            onChange={(e) => setPlan(e.target.value)}
+            disabled={isSubmitting}
+            className="w-full bg-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="free">無料</option>
+            <option value="pro_light">Proライト</option>
+            <option value="pro_standard">Proスタンダード</option>
+            <option value="pro_advanced">Proアドバンス</option>
+          </select>
+        </div>
         <button
           type="submit"
-          className=" bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+          disabled={isSubmitting}
+          className="w-full bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
         >
-          保存
+          {isSubmitting ? "保存中..." : "保存"}
         </button>
-        <p>{message}</p>
-        <p>
+        {message && (
+          <p className={`text-sm ${message.includes('成功') ? 'text-green-600' : 'text-red-600'}`}>
+            {message}
+          </p>
+        )}
+        <p className="text-sm text-gray-600">
           まだj-quantsに登録していない方は
-          <a href="https://jpx-jquants.com/?lang=ja" className="text-blue-700">
+          <a href="https://jpx-jquants.com/?lang=ja" className="text-blue-700 hover:underline ml-1">
             こちら
           </a>
         </p>
       </form>
-      <div className="mt-6">
-        <h2 className="font-semibold">ユーザー名の変更</h2>
-        <input
-          type="text"
-          placeholder="新しいユーザー名"
-          value={user_name}
-          onChange={(e) => setUsername(e.target.value)}
-          className="bg-white"
-        />
-        <button
-          type="button"
-          onClick={handleChangeUsername}
-          className="ml-2 bg-white hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
-        >
-          変更
-        </button>
-        <p>{nameMessage}</p>
+      
+      <div className="border-t pt-6">
+        <h2 className="font-semibold text-lg mb-4">ユーザー名の変更</h2>
+        <div className="space-y-3">
+          <input
+            type="text"
+            placeholder="新しいユーザー名"
+            value={user_name}
+            onChange={(e) => setUsername(e.target.value)}
+            disabled={isChangingUsername}
+            className="w-full bg-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+          <button
+            type="button"
+            onClick={handleChangeUsername}
+            disabled={isChangingUsername}
+            className="w-full bg-white hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+          >
+            {isChangingUsername ? "変更中..." : "変更"}
+          </button>
+          {nameMessage && (
+            <p className={`text-sm ${nameMessage.includes('変更しました') ? 'text-green-600' : 'text-red-600'}`}>
+              {nameMessage}
+            </p>
+          )}
+        </div>
       </div>
-      <div className="mt-6">
-        <h2 className="font-semibold text-red-600">アカウント退会</h2>
+      
+      <div className="border-t pt-6">
+        <h2 className="font-semibold text-red-600 text-lg mb-4">アカウント退会</h2>
         <button
           type="button"
           onClick={handleDeleteAccount}
-          className="bg-white hover:bg-red-500 text-red-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded"
+          disabled={isDeletingAccount}
+          className="w-full bg-white hover:bg-red-500 text-red-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
         >
-          退会する
+          {isDeletingAccount ? "退会処理中..." : "退会する"}
         </button>
       </div>
     </div>
   );
 };
-
-export default SettingsScreen;
