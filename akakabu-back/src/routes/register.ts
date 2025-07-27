@@ -4,7 +4,7 @@ import  { JQuantsClient } from "./../jquants/jquantsClient.js"
 import {searchByKeyword} from "./../jquants/stockSearchService.js"
 import type { JQuantsUserConfig } from "./../jquants/jquants.js"
 
-const searchRouter = Router();
+export const searchRouter = Router();
 // POST /api/jquants/search
 searchRouter.post("/search", async (req, res) => {
   const { userId, keywords } = req.body;
@@ -40,5 +40,3 @@ searchRouter.post("/search", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-export default searchRouter;

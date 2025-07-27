@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "lint": "eslint ./src --ext .ts,.tsx",
+    "format": "prettier --write .",
     "dev": "vite --port 3001 --host",
     "build": "vite build",
     "vercel-build": "vite build",
@@ -27,7 +29,16 @@
     "@supabase/supabase-js": "2.49.4",
     "axios": "1.8.4",
     "autoprefixer": "10.4.21",
-    "@tailwindcss/postcss":"4.1.10"
+    "@tailwindcss/postcss":"4.1.10",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^7.0.1"
   },
   "dependencies": {
     "react": "^19.0.0",

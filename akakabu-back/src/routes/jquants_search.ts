@@ -2,26 +2,17 @@ import {Router} from "express";
 import supabase from "./../supabaseClient.js";
 import {searchAndSummarize} from "./../jquants/stockSearchService.js"
 import type { JQuantsUserConfig } from "./../jquants/jquants.js";
+import { authenticateSupabaseUser } from "../middleware/supabaseAuth.js";
 
-const searchRouter = Router();
+export const searchRouter = Router();
 // POST /api/jquants/search
-searchRouter.post("/search", async (req, res) => {
-//  Cookieからユーザー情報を取得
-  const token = req.cookies["sb-access-token"];
-  if (!token) {
-    return res.status(401).json({ error: "認証されていません" });
-  }
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser(token);
-
-  if (error || !user) {
+searchRouter.post("/search", authenticateSupabaseUser, async (req, res) => {
+  const user = req.user;
+  if (!user) {
     return res.status(401).json({ error: "無効なユーザー" });
   }
 
-  const userId =user.id;
+  const userId = user.id;
 // フロントからの情報を受け取り
   const { keywords } = req.body;
 
@@ -61,5 +52,3 @@ searchRouter.post("/search", async (req, res) => {
     res.status(500).json({ error: err.message || "JQuants fetch failed" });
   }
 });
-
-export default searchRouter;

@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuth from "./../hooks/useAuth";
+import { useAuth } from "./../hooks/useAuth";
+import { validateEmail, validatePassword } from "../utils/errorHandler";
 
 const Login = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-
-  const apiBaseUrl = import.meta.env.VITE_API_URL;
-
-  // メールアドレスの正規表現
-  const emailRegex =
-    /^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") await handleRegister();
+    if (e.key === "Enter") await handleLogin();
   };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     switch (name) {
@@ -28,90 +25,125 @@ const Login = () => {
       default:
         break;
     }
+    // エラーメッセージをクリア
+    if (error) setError("");
   };
 
-  const { user, load } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!load && user) {
+    if (!loading && user) {
       navigate("/");
     }
-  }, [load, user, navigate]);
+  }, [loading, user, navigate]);
 
-  const handleRegister = async () => {
-    // メールアドレスが正しい形式かチェック
-    if (!emailRegex.test(email)) {
-      setError("メールアドレスの形式が正しくありません");
+  const { login } = useAuth();
+
+  const handleLogin = async () => {
+    // バリデーション
+    if (!email.trim()) {
+      setError("メールアドレスを入力してください。");
       return;
     }
-    if (password === "") {
-      setError("パスワードを入力してください");
+
+    if (!validateEmail(email)) {
+      setError("メールアドレスの形式が正しくありません。");
       return;
     }
+
+    if (!password.trim()) {
+      setError("パスワードを入力してください。");
+      return;
+    }
+
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setError(passwordValidation.message);
+      return;
+    }
+
+    setIsLoggingIn(true);
+    setError("");
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await login(email.trim(), password);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData?.message || "ログインに失敗しました");
-        return;
+      if (result.success) {
+        console.log("ログイン成功");
+        navigate("/");
+      } else {
+        setError(result.message);
       }
-      const data = await response.json();
-      console.log("ログイン成功:", data);
-      navigate("/");
-    } catch (err) {
-      console.error("ログイン時のエラー:", err);
-      setError("ネットワークエラーが発生しました");
+    } catch (error) {
+      setError("ログインに失敗しました");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   return (
-    <div className="px-30 bg-white">
-      <h2 className="text-center">ログイン</h2>
-      <p className="text-center text-gray-700">メールアドレス</p>
-      <input
-        type="text"
-        name="email"
-        value={email}
-        onChange={handleChange}
-        placeholder="メールアドレスを入力してください"
-        className="placeholder-opacity-50 mx-auto w-full border-b py-1 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
-      />
-      <p className="text-center text-gray-700">パスワード</p>
-      <input
-        type="password"
-        name="password"
-        value={password}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="パスワードを入力してください"
-        className="placeholder-opacity-50 mx-auto w-full border-b py-1 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none"
-      />
-      <button
-        onClick={handleRegister}
-        className="block mx-auto bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
-      >
-        ログイン
-      </button>
-      {error && <p className="text-center text-red-500">{error}</p>}
-      <p>
-        まだ登録がお済みでない方は{" "}
-       <span
-         onClick={() => navigate("/Signup")}
-          className="text-blue-700 cursor-pointer underline"
-       >
-          こちら
-       </span>
-      </p>
+    <div className="bg-white w-full max-w-lg mx-auto px-10">
+      <h2 className="text-center text-2xl font-bold mb-6">ログイン</h2>
+      
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            メールアドレス
+          </label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={handleChange}
+            disabled={isLoggingIn}
+            placeholder="メールアドレスを入力してください"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            パスワード
+          </label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            disabled={isLoggingIn}
+            placeholder="パスワードを入力してください"
+            className="w-full border-b py-2 px-4 placeholder-gray-500 focus:border-b-2 focus:border-blue-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+          />
+        </div>
+
+        <button
+          onClick={handleLogin}
+          disabled={isLoggingIn}
+          className="w-full bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+        >
+          {isLoggingIn ? "ログイン中..." : "ログイン"}
+        </button>
+
+        {error && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            {error}
+          </div>
+        )}
+
+        <p className="text-center text-sm text-gray-600">
+          まだ登録がお済みでない方は{" "}
+          <span
+            onClick={() => navigate("/Signup")}
+            className="text-blue-700 cursor-pointer underline hover:text-blue-800"
+          >
+            こちら
+          </span>
+        </p>
+      </div>
     </div>
   );
 };
