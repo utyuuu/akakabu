@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { validateEmail, validatePassword, validateUsername } from "../utils/errorHandler";
+import { useAuth } from "./../hooks/useAuth";
+import { validateEmail, validatePassword } from "../utils/errorHandler";
 
 const Signup = () => {
   const [email, setEmail] = useState<string>("");
@@ -9,10 +9,11 @@ const Signup = () => {
   const [password1, setPassword1] = useState<string>("");
   const [password2, setPassword2] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
   const [isSigningUp, setIsSigningUp] = useState(false);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") return handleRegister();
+    if (e.key === "Enter") handleRegister();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,38 +36,29 @@ const Signup = () => {
     }
     // エラーメッセージをクリア
     if (error) setError("");
+    if (success) setSuccess("");
   };
 
+  const { user: authUser, loading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && authUser) {
+      navigate("/");
+    }
+  }, [loading, authUser, navigate]);
+
   const { signup } = useAuth();
 
   const handleRegister = async () => {
-    setError("");
-
     // バリデーション
-    if (!email.trim()) {
-      setError("メールアドレスを入力してください。");
+    if (!email.trim() || !user.trim() || !password1 || !password2) {
+      setError("すべての項目を入力してください。");
       return;
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(email.trim())) {
       setError("メールアドレスの形式が正しくありません。");
-      return;
-    }
-
-    if (!user.trim()) {
-      setError("ユーザー名を入力してください。");
-      return;
-    }
-
-    const usernameValidation = validateUsername(user);
-    if (!usernameValidation.isValid) {
-      setError(usernameValidation.message);
-      return;
-    }
-
-    if (!password1.trim() || !password2.trim()) {
-      setError("パスワードを入力してください。");
       return;
     }
 
@@ -76,20 +68,24 @@ const Signup = () => {
       return;
     }
 
-    if (password1.trim() !== password2.trim()) {
-      setError("パスワードが一致していません。");
+    if (password1 !== password2) {
+      setError("パスワードが一致しません。");
       return;
     }
 
     setIsSigningUp(true);
+    setError("");
+    setSuccess("");
 
     try {
       const result = await signup(email.trim(), user.trim(), password1);
 
       if (result.success) {
-      alert("登録成功！メールを確認してください。");
-      navigate("/Login");
-    } else {
+        setSuccess("登録成功！メールを確認してください。");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
         setError(result.message);
       }
     } catch (error) {
@@ -183,15 +179,23 @@ const Signup = () => {
           </div>
         )}
 
-        <p className="text-center text-sm text-gray-600">
-        既に登録がお済みの方は{" "}
-       <span
-         onClick={() => navigate("/Login")}
-            className="text-blue-700 cursor-pointer underline hover:text-blue-800"
-       >
-          こちら
-       </span>
-      </p>
+        {success && (
+          <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+            {success}
+          </div>
+        )}
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            既にアカウントをお持ちですか？
+            <button
+              onClick={() => navigate("/login")}
+              className="text-blue-600 hover:underline ml-1"
+            >
+              ログイン
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );
