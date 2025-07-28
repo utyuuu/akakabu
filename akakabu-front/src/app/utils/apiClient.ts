@@ -1,7 +1,6 @@
 import { supabase } from './supabaseClient';
 
 // APIクライアントの設定
-const DEFAULT_TIMEOUT = 10000; // 10秒
 const DEFAULT_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1秒
 
@@ -46,49 +45,45 @@ export class ApiError extends Error {
   }
 }
 
-// タイムアウト付きfetch
-const fetchWithTimeout = async (
+// シンプルなfetch（タイムアウトなし）
+const simpleFetch = async (
   url: string, 
-  options: RequestInit, 
-  timeout: number
+  options: RequestInit
 ): Promise<Response> => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
   try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    const response = await fetch(url, options);
     return response;
   } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new ApiError('リクエストがタイムアウトしました', 408, 'Request Timeout');
+    if (error instanceof Error) {
+      if (error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+        throw new ApiError('ネットワークエラーが発生しました', 0, 'Network Error');
+      }
     }
     throw error;
   }
 };
 
-// リトライ機能付きfetch
+// リトライ機能付きfetch（シンプル版）
 const fetchWithRetry = async (
   url: string,
   options: RequestInit,
-  timeout: number,
   retries: number
 ): Promise<Response> => {
   let lastError: Error;
 
   for (let i = 0; i <= retries; i++) {
     try {
-      return await fetchWithTimeout(url, options, timeout);
+      return await simpleFetch(url, options);
     } catch (error) {
       lastError = error as Error;
       
-      // 最後の試行でない場合は待機
+      // 最後の試行でない場合は待機（シンプルな方法）
       if (i < retries) {
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+        // 同期的な待機（setTimeoutの代わり）
+        const start = Date.now();
+        while (Date.now() - start < RETRY_DELAY * (i + 1)) {
+          // 空のループで待機
+        }
       }
     }
   }
@@ -105,7 +100,6 @@ export const apiClient = async <T = any>(
     method = 'GET',
     body,
     headers = {},
-    timeout = DEFAULT_TIMEOUT,
     retries = DEFAULT_RETRIES,
     // credentials = 'include' ← 認証はBearerトークンで行うのでomit
   } = options;
@@ -137,7 +131,7 @@ export const apiClient = async <T = any>(
   }
 
   try {
-    const response = await fetchWithRetry(url, requestOptions, timeout, retries);
+    const response = await fetchWithRetry(url, requestOptions, retries);
     
     // レスポンスのJSONを取得（エラーの場合も含む）
     let data: T;

@@ -76,24 +76,21 @@ export const SearchScreen = () => {
   };
 
   const handleAddFavorit = async (stock: Stock) => {
-    if (!stock) {
-      setFavoriteMessage("お気に入りに追加する株式を選択してください。");
-      return;
-    }
-
     setIsAddingFavorite(true);
     setFavoriteMessage("");
 
     try {
       await api.post('/api/favorit', { 
-        Item: stock 
+        stock_code: stock.code,
+        company_name: stock.companyName,
+        close_price: stock.close_price,
+        fiscal_year: parseInt(stock.fiscal_year)
       }, { 
         timeout: 10000
       });
 
       setFavoriteMessage("お気に入りに追加しました！");
-      // 3秒後にメッセージをクリア
-      setTimeout(() => setFavoriteMessage(""), 3000);
+
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       setFavoriteMessage(`お気に入り追加エラー: ${errorMessage}`);
@@ -147,6 +144,12 @@ export const SearchScreen = () => {
             : 'bg-red-100 border-red-400 text-red-700'
         }`}>
           {favoriteMessage}
+          <button
+            onClick={() => setFavoriteMessage("")}
+            className="ml-2 text-sm underline hover:no-underline"
+          >
+            閉じる
+          </button>
         </div>
       )}
 
@@ -187,7 +190,7 @@ export const SearchScreen = () => {
             )}
           </React.Fragment>
         ))}
-      </ul>
+        </ul>
         )}
       </div>
     </div>
