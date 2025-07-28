@@ -82,9 +82,7 @@ const Signup = () => {
 
       if (result.success) {
         setSuccess("登録成功！メールを確認してください。");
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+        navigate("/login");
       } else {
         setError(result.message);
       }

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, useRoutes, HashRouter } from "react-router-dom";
+import { BrowserRouter, useRoutes } from "react-router-dom";
 import { routes } from "./root"; // `root.ts` をインポート
 import './index.css';
 
