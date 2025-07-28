@@ -70,7 +70,6 @@ const Login = () => {
       const result = await login(email.trim(), password);
 
       if (result.success) {
-        console.log("ログイン成功");
         navigate("/");
       } else {
         setError(result.message);
