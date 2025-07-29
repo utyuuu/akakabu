@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../utils/apiClient";
 import { getErrorMessage, logError, validateUsername } from "../utils/errorHandler";
 import { useAuth } from "../hooks/useAuth";
 
 export const SettingsScreen = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [token, setToken] = useState("");
   const [plan, setPlan] = useState("free");
   const [message, setMessage] = useState("");
@@ -13,6 +15,8 @@ export const SettingsScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangingUsername, setIsChangingUsername] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   // リフレッシュトークン登録
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,25 +92,20 @@ export const SettingsScreen = () => {
 
   // 退会機能
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      "本当に退会しますか？この操作は取り消せません。"
-    );
-    
-    if (!confirmed) return;
-
     setIsDeletingAccount(true);
+    setDeleteMessage("");
 
     try {
       await api.delete('/api/users', { 
         timeout: 15000 // 退会処理は少し長めのタイムアウト
       });
 
-      alert("退会しました。ご利用ありがとうございました。");
-      // ログアウトやトップページへの遷移
-      window.location.href = "/";
+      setDeleteMessage("退会しました。ご利用ありがとうございました。");
+      // React Routerを使って遷移
+      navigate("/");
     } catch (error) {
       const errorMessage = getErrorMessage(error);
-      alert(`退会処理に失敗しました: ${errorMessage}`);
+      setDeleteMessage(`退会処理に失敗しました: ${errorMessage}`);
       logError('アカウント削除', error);
     } finally {
       setIsDeletingAccount(false);
@@ -119,9 +118,7 @@ export const SettingsScreen = () => {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h2 className="font-semibold text-lg mb-2 text-blue-800">現在のユーザー情報</h2>
         <div className="space-y-2 text-sm">
-          <div><strong>ユーザーID:</strong> {user?.id}</div>
           <div><strong>ユーザー名:</strong> {user?.user_name}</div>
-          <div><strong>登録日:</strong> {user?.created_at ? new Date(user.created_at).toLocaleDateString('ja-JP') : 'N/A'}</div>
         </div>
       </div>
 
@@ -172,7 +169,7 @@ export const SettingsScreen = () => {
         )}
         <p className="text-sm text-gray-600">
           まだj-quantsに登録していない方は
-          <a href="https://jpx-jquants.com/?lang=ja" className="text-blue-700 hover:underline ml-1">
+          <a href="https://jpx-jquants.com/?lang=ja" target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline ml-1">
             こちら
           </a>
         </p>
@@ -207,14 +204,41 @@ export const SettingsScreen = () => {
       
       <div className="border-t pt-6">
         <h2 className="font-semibold text-red-600 text-lg mb-4">アカウント退会</h2>
-        <button
-          type="button"
-          onClick={handleDeleteAccount}
-          disabled={isDeletingAccount}
-          className="w-full bg-white hover:bg-red-500 text-red-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-        >
-          {isDeletingAccount ? "退会処理中..." : "退会する"}
-        </button>
+        {!showDeleteConfirm ? (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full bg-white hover:bg-red-500 text-red-700 font-semibold hover:text-white py-2 px-4 border border-red-500 hover:border-transparent rounded transition-colors"
+          >
+            退会する
+          </button>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-red-600">本当に退会しますか？この操作は取り消せません。</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 border border-red-500 hover:border-transparent rounded transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+              >
+                {isDeletingAccount ? "退会処理中..." : "退会する"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 border border-gray-500 hover:border-transparent rounded transition-colors"
+              >
+                キャンセル
+              </button>
+            </div>
+            {deleteMessage && (
+              <p className={`text-sm ${deleteMessage.includes('退会しました') ? 'text-green-600' : 'text-red-600'}`}>
+                {deleteMessage}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
