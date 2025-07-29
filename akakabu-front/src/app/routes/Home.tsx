@@ -24,6 +24,11 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ユーザー名表示（右上） */}
+      <div className="w-full text-right px-4 py-2 bg-white shadow-sm fixed top-0 left-0 z-10">
+        <strong>ユーザー:</strong> {user?.user_name} さん
+      </div>
+      {/* タブメニュー */}
       <div className="w-full flex flex-wrap justify-between absolute top-10 left-0 px-4">
         <button
           onClick={() => setActiveTab("search")}
@@ -64,6 +69,7 @@ const Home: React.FC = () => {
           ⚙ 設定
         </button>
       </div>
+      {/* タブコンテンツ */}
       <div className="pt-24 px-4">
         {activeTab === "search" && <SearchScreen />}
         {activeTab === "dividend" && <DividendScreen />}
