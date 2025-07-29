@@ -114,14 +114,6 @@ export const SettingsScreen = () => {
 
   return (
     <div className="max-w-md mx-auto space-y-6">
-      {/* 現在のユーザー情報表示 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h2 className="font-semibold text-lg mb-2 text-blue-800">現在のユーザー情報</h2>
-        <div className="space-y-2 text-sm">
-          <div><strong>ユーザー名:</strong> {user?.user_name}</div>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="token" className="block text-sm font-medium text-gray-700 mb-1">
