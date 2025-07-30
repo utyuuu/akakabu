@@ -115,13 +115,6 @@ export const AssetsScreen = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* ユーザー情報表示 */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h1 className="text-2xl font-bold text-blue-800 mb-2">資産情報</h1>
-        <div className="text-sm text-blue-700">
-          <strong>ユーザー:</strong> {user?.user_name} さん
-        </div>
-      </div>
 
       {/* エラーメッセージ */}
       {error && (
