@@ -6,13 +6,6 @@ export const DividendScreen = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* ユーザー情報表示 */}
-      <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-        <h1 className="text-2xl font-bold text-green-800 mb-2">配当情報</h1>
-        <div className="text-sm text-green-700">
-          <strong>ユーザー:</strong> {user?.user_name} さん
-        </div>
-      </div>
 
       {/* 配当情報の表示エリア */}
       <div className="bg-white border rounded-lg p-6 shadow-sm">
