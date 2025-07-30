@@ -29,7 +29,7 @@ const Login = () => {
     if (error) setError("");
   };
 
-  const { user, loading } = useAuth();
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,8 +37,6 @@ const Login = () => {
       navigate("/");
     }
   }, [loading, user, navigate]);
-
-  const { login } = useAuth();
 
   const handleLogin = async () => {
     // バリデーション

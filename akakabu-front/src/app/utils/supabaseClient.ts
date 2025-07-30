@@ -48,7 +48,9 @@ export interface Favorite {
   fiscal_year: number;
   company_name: string;
   close_price?: number;
+  shares_hold: number; // 保有株式数
   created_at: string;
+  updated_at?: string;
 }
 
 export interface AuthResponse {
