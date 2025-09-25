@@ -1,8 +1,8 @@
 import { supabase } from './supabaseClient';
 
 // APIクライアントの設定
-const DEFAULT_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1秒
+const DEFAULT_RETRIES = 1; // リトライ回数を3から1に削減
+const RETRY_DELAY = 100; // 待機時間を1000msから100msに短縮
 
 // リクエストオプションの型定義
 interface RequestOptions {
@@ -63,7 +63,7 @@ const simpleFetch = async (
   }
 };
 
-// リトライ機能付きfetch
+// リトライ機能付きfetch（同期的な待機処理）
 const fetchWithRetry = async (
   url: string,
   options: RequestInit,
@@ -79,8 +79,11 @@ const fetchWithRetry = async (
       
       // 最後の試行でない場合は待機
       if (i < retries) {
-        // 非同期の待機に変更（同期的なwhileループを削除）
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
+        // 同期的な待機
+        const start = Date.now();
+        while (Date.now() - start < RETRY_DELAY) {
+          // 空のループで待機（100msのみ）
+        }
       }
     }
   }

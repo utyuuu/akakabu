@@ -19,6 +19,11 @@ export const useAuth = () => {
   useEffect(() => {
     checkAuthStatus();
     
+    // タイムアウト機能（5秒で強制的にloadingをfalseにする）
+    const timeout = setTimeout(() => {
+      setAuthState(prev => ({ ...prev, loading: false }));
+    }, 5000);
+    
     // 認証状態の変更を監視
     const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
       setAuthState({
@@ -28,7 +33,10 @@ export const useAuth = () => {
       });
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkAuthStatus = async () => {
@@ -44,17 +52,19 @@ export const useAuth = () => {
           error: null
         });
       } else {
+        // ユーザーが見つからない場合は認証なしとして扱う
         setAuthState({
           user: null,
           loading: false,
-          error: result.message || null
+          error: null // エラーをnullにして、認証なし状態にする
         });
       }
     } catch (error) {
+      // エラーが発生しても認証なし状態にする
       setAuthState({
         user: null,
         loading: false,
-        error: '認証状態の確認に失敗しました'
+        error: null
       });
     }
   };
