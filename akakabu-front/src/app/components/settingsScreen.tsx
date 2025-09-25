@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/apiClient";
 import { getErrorMessage, logError, validateUsername } from "../utils/errorHandler";
+import { supabase } from "../utils/supabaseClient";
 
 
 export const SettingsScreen = () => {
@@ -16,11 +17,51 @@ export const SettingsScreen = () => {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // 認証状態をチェック
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    checkAuth();
+  }, []);
+
+  // 未認証の場合はログイン画面にリダイレクト
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto space-y-6">
+        <div className="text-center py-8">
+          <p className="text-gray-600 mb-4">ログインが必要です</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+          >
+            ログイン画面に移動
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // リフレッシュトークン登録
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // 認証状態を確認
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setMessage("ログインが必要です。ログイン画面に移動してください。");
+      return;
+    }
+
+    console.log('User session:', {
+      hasSession: !!session,
+      hasAccessToken: !!session.access_token,
+      userId: session.user?.id
+    });
+
     // バリデーション
     if (!token.trim()) {
       setMessage("リフレッシュトークンを入力してください。");
@@ -46,6 +87,7 @@ export const SettingsScreen = () => {
       setMessage("保存成功！");
       setToken(""); // 成功後にトークンをクリア
     } catch (error) {
+      console.error('API Error:', error);
       const errorMessage = getErrorMessage(error);
       setMessage(`保存失敗: ${errorMessage}`);
       logError('J-Quants登録', error);
