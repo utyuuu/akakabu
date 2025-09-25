@@ -3,6 +3,6 @@
 @layer base {
   html,
   body {
-    background-color: oklch(0.932 0.032 255.585);
+    background-color: oklch(0.949 0.033 142);
   }
 }

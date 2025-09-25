@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../utils/apiClient";
 import { getErrorMessage, logError } from "../utils/errorHandler";
-import { useAuth } from "../hooks/useAuth";
 
 type Stock = {
   code: string;
@@ -12,7 +11,6 @@ type Stock = {
 };
 
 export const SearchScreen = () => {
-  const { user } = useAuth();
   const [keywords, setKeywords] = useState<string>("");
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
