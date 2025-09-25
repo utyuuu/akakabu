@@ -63,7 +63,7 @@ const simpleFetch = async (
   }
 };
 
-// リトライ機能付きfetch（シンプル版）
+// リトライ機能付きfetch
 const fetchWithRetry = async (
   url: string,
   options: RequestInit,
@@ -77,13 +77,10 @@ const fetchWithRetry = async (
     } catch (error) {
       lastError = error as Error;
       
-      // 最後の試行でない場合は待機（シンプルな方法）
+      // 最後の試行でない場合は待機
       if (i < retries) {
-        // 同期的な待機（setTimeoutの代わり）
-        const start = Date.now();
-        while (Date.now() - start < RETRY_DELAY * (i + 1)) {
-          // 空のループで待機
-        }
+        // 非同期の待機に変更（同期的なwhileループを削除）
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (i + 1)));
       }
     }
   }

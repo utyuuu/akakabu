@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/apiClient";
 import { getErrorMessage, logError, validateUsername } from "../utils/errorHandler";
-import { useAuth } from "../hooks/useAuth";
+
 
 export const SettingsScreen = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [token, setToken] = useState("");
   const [plan, setPlan] = useState("free");
