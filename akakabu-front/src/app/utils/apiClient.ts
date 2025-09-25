@@ -101,23 +101,39 @@ export const apiClient = async <T = any>(
     body,
     headers = {},
     retries = DEFAULT_RETRIES,
-    // credentials = 'include' ← 認証はBearerトークンで行うのでomit
   } = options;
 
   const apiBaseUrl = import.meta.env.VITE_API_URL;
   const url = `${apiBaseUrl}${endpoint}`;
 
   // Supabaseの認証トークンを取得
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
   const token = session?.access_token;
+
+  // デバッグ用ログ
+  console.log('API Client Debug:', {
+    hasSession: !!session,
+    hasToken: !!token,
+    tokenType: token ? 'access_token' : 'none',
+    endpoint,
+    method
+  });
+
+  if (sessionError) {
+    console.error('Session error:', sessionError);
+  }
 
   // Authorizationヘッダーを必ず付与
   const headersWithAuth: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers,
   };
+  
   if (token) {
     headersWithAuth['Authorization'] = `Bearer ${token}`;
+    console.log('Authorization header set with access_token');
+  } else {
+    console.warn('No access token available - request will likely fail with 401');
   }
 
   const requestOptions: RequestInit = {
