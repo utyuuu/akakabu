@@ -158,6 +158,24 @@ export class AuthService {
 
       if (userError) {
         logError('Current user fetch error', userError);
+        
+        // フォールバック: usersテーブルにデータがない場合は手動で作成
+        if (userError.code === 'PGRST116') {
+          console.log('Users table data not found, creating fallback user data');
+          
+          const fallbackUser: User = {
+            id: user.id,
+            user_name: user.user_metadata?.user_name || 'User',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          return {
+            success: true,
+            user: fallbackUser
+          };
+        }
+        
         return {
           success: false,
           message: 'ユーザー情報の取得に失敗しました'
