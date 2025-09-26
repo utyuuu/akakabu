@@ -73,17 +73,20 @@ export const SettingsScreen = () => {
       return;
     }
 
+    console.log('Starting API call...');
     setIsSubmitting(true);
     setMessage("");
 
     try {
-      await api.post('/api/jquants/register', { 
+      console.log('Calling api.post with:', { refresh_token: token, plan });
+      const result = await api.post('/api/jquants/register', { 
         refresh_token: token, 
         plan 
       }, { 
         timeout: 10000 // 10秒タイムアウト
       });
-
+      
+      console.log('API call successful:', result);
       setMessage("保存成功！");
       setToken(""); // 成功後にトークンをクリア
     } catch (error) {

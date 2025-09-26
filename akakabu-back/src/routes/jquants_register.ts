@@ -6,6 +6,10 @@ import { authenticateSupabaseUser } from "../middleware/supabaseAuth.js";
 export const JRegisterRouter = Router();
 // POST /api/jquants/register
 JRegisterRouter.post("/register", authenticateSupabaseUser, async (req: Request, res: Response) => {
+  console.log('=== J-Quants Register Endpoint Called ===');
+  console.log('User:', req.user?.id);
+  console.log('Request body:', req.body);
+  
   const user = req.user;
   if (!user) {
     return res.status(401).json({ error: "認証されていません" });
@@ -14,15 +18,18 @@ JRegisterRouter.post("/register", authenticateSupabaseUser, async (req: Request,
   const { refresh_token, plan } = req.body;
 
   if(!refresh_token || !plan){
+    console.log('Missing required fields');
     return res.status(400).json({ error: "リフレッシュトークンとプランは必須です" });
   }
 
-   try{
-    // J-Quantsからaccess_tokenを取得
-    const response = await axios.post(`https://api.jquants.com/v1/token/auth_refresh?refreshtoken=${encodeURIComponent(refresh_token)}`
-      );
+  try{
+    console.log('Calling J-Quants API...');
+    const response = await axios.post(`https://api.jquants.com/v1/token/auth_refresh?refreshtoken=${encodeURIComponent(refresh_token)}`);
     const id_token = response.data.idToken;
+    console.log('J-Quants response received:', { hasIdToken: !!id_token });
+    
     if(!id_token){
+      console.log('No ID token received');
       return res.status(500).json({error: "IDトークンの取得に失敗しました"})
     }
 
