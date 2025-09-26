@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { api } from "../utils/apiClient";
-import { getErrorMessage, logError } from "../utils/errorHandler";
 
 type Stock = {
   code: string;
@@ -65,9 +64,7 @@ export const SearchScreen = () => {
         setError("検索結果が見つかりませんでした。");
     }
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      setError(`検索エラー: ${errorMessage}`);
-      logError('株式検索', error);
+      console.error('株式検索',error)
     } finally {
       setIsSearching(false);
     }
@@ -90,9 +87,7 @@ export const SearchScreen = () => {
       setFavoriteMessage("お気に入りに追加しました！");
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      setFavoriteMessage(`お気に入り追加エラー: ${errorMessage}`);
-      logError('お気に入り追加', error);
+      console.error('お気に入り追加',error)
     } finally {
       setIsAddingFavorite(false);
     }
