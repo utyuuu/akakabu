@@ -1,5 +1,4 @@
 import { supabase, User } from '../utils/supabaseClient';
-import { getErrorMessage, logError } from '../utils/errorHandler';
 
 export class AuthService {
   // サインアップ
@@ -17,7 +16,7 @@ export class AuthService {
       });
 
       if (authError) {
-        logError('Supabase signup auth error', authError);
+        console.error('Supabase signup auth error', authError);
         return {
           success: false,
           message: authError.message || 'サインアップに失敗しました'
@@ -46,11 +45,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Signup error', error);
+      console.error('Signup error', error);
       return {
         success: false,
-        message: `サインアップエラー: ${errorMessage}`
+        message: `サインアップエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -64,7 +62,7 @@ export class AuthService {
       });
 
       if (authError) {
-        logError('Supabase signin auth error', authError);
+        console.error('Supabase signin auth error', authError);
         return {
           success: false,
           message: authError.message || 'ログインに失敗しました'
@@ -86,7 +84,26 @@ export class AuthService {
         .single();
 
       if (userError) {
-        logError('User data fetch error', userError);
+        console.error('User data fetch error', userError);
+        
+        // フォールバック: usersテーブルにデータがない場合は手動で作成
+        if (userError.code === 'PGRST116') {
+          console.log('Users table data not found, creating fallback user data');
+          
+          const fallbackUser: User = {
+            id: authData.user.id,
+            user_name: authData.user.user_metadata?.user_name || 'User',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          return {
+            success: true,
+            message: 'ログイン成功（フォールバック）',
+            user: fallbackUser
+          };
+        }
+        
         return {
           success: false,
           message: 'ユーザー情報の取得に失敗しました'
@@ -100,11 +117,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Signin error', error);
+      console.error('Signin error', error);
       return {
         success: false,
-        message: `ログインエラー: ${errorMessage}`
+        message: `ログインエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -115,7 +131,7 @@ export class AuthService {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        logError('Signout error', error);
+        console.error('Signout error', error);
         return {
           success: false,
           message: 'ログアウトに失敗しました'
@@ -128,11 +144,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Signout error', error);
+      console.error('Signout error', error);
       return {
         success: false,
-        message: `ログアウトエラー: ${errorMessage}`
+        message: `ログアウトエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -157,7 +172,7 @@ export class AuthService {
         .single();
 
       if (userError) {
-        logError('Current user fetch error', userError);
+        console.error('Current user fetch error', userError);
         
         // フォールバック: usersテーブルにデータがない場合は手動で作成
         if (userError.code === 'PGRST116') {
@@ -188,11 +203,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Get current user error', error);
+      console.error('Get current user error', error);
       return {
         success: false,
-        message: `ユーザー取得エラー: ${errorMessage}`
+        message: `ユーザー取得エラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -229,7 +243,7 @@ export class AuthService {
         .single();
 
       if (error) {
-        logError('Update user error', error);
+        console.error('Update user error', error);
         return {
           success: false,
           message: 'ユーザー情報の更新に失敗しました'
@@ -243,11 +257,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Update user error', error);
+      console.error('Update user error', error);
       return {
         success: false,
-        message: `ユーザー更新エラー: ${errorMessage}`
+        message: `ユーザー更新エラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -262,7 +275,7 @@ export class AuthService {
         .eq('id', userId);
 
       if (deleteError) {
-        logError('Delete user error', deleteError);
+        console.error('Delete user error', deleteError);
         return {
           success: false,
           message: 'ユーザーデータの削除に失敗しました'
@@ -273,7 +286,7 @@ export class AuthService {
       const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
 
       if (authDeleteError) {
-        logError('Delete auth user error', authDeleteError);
+        console.error('Delete auth user error', authDeleteError);
         // 認証削除に失敗しても、データは削除されているので成功とする
         console.warn('Auth user deletion failed, but user data was deleted');
       }
@@ -284,11 +297,10 @@ export class AuthService {
       };
 
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      logError('Delete user error', error);
+      console.error('Delete user error', error);
       return {
         success: false,
-        message: `アカウント削除エラー: ${errorMessage}`
+        message: `アカウント削除エラー: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
