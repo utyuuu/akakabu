@@ -79,11 +79,8 @@ const fetchWithRetry = async (
       
       // 最後の試行でない場合は待機
       if (i < retries) {
-        // 同期的な待機
-        const start = Date.now();
-        while (Date.now() - start < RETRY_DELAY) {
-          // 空のループで待機（100msのみ）
-        }
+        // 非同期で待機
+        await new Promise(res => setTimeout(res, RETRY_DELAY));
       }
     }
   }
