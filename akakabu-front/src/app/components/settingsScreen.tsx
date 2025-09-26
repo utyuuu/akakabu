@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../utils/apiClient";
-import { getErrorMessage, logError, validateUsername } from "../utils/errorHandler";
 import { supabase } from "../utils/supabaseClient";
-
 
 export const SettingsScreen = () => {
   const navigate = useNavigate();
@@ -56,12 +54,6 @@ export const SettingsScreen = () => {
       return;
     }
 
-    console.log('User session:', {
-      hasSession: !!session,
-      hasAccessToken: !!session.access_token,
-      userId: session.user?.id
-    });
-
     // バリデーション
     if (!token.trim()) {
       setMessage("リフレッシュトークンを入力してください。");
@@ -73,27 +65,20 @@ export const SettingsScreen = () => {
       return;
     }
 
-    console.log('Starting API call...');
     setIsSubmitting(true);
     setMessage("");
 
     try {
-      console.log('Calling api.post with:', { refresh_token: token, plan });
-      const result = await api.post('/api/jquants/register', { 
+      await api.post('/api/jquants/register', { 
         refresh_token: token, 
         plan 
-      }, { 
-        timeout: 10000 // 10秒タイムアウト
       });
-      
-      console.log('API call successful:', result);
+
       setMessage("保存成功！");
       setToken(""); // 成功後にトークンをクリア
     } catch (error) {
       console.error('API Error:', error);
-      const errorMessage = getErrorMessage(error);
-      setMessage(`保存失敗: ${errorMessage}`);
-      logError('J-Quants登録', error);
+      setMessage("保存失敗: エラーが発生しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -107,9 +92,13 @@ export const SettingsScreen = () => {
       return;
     }
 
-    const usernameValidation = validateUsername(user_name);
-    if (!usernameValidation.isValid) {
-      setNameMessage(usernameValidation.message);
+    if (user_name.length < 2) {
+      setNameMessage("ユーザー名は2文字以上で入力してください。");
+      return;
+    }
+
+    if (user_name.length > 50) {
+      setNameMessage("ユーザー名は50文字以下で入力してください。");
       return;
     }
 
@@ -119,16 +108,12 @@ export const SettingsScreen = () => {
     try {
       await api.patch('/api/users', { 
         user_name: user_name.trim() 
-      }, { 
-        timeout: 10000
       });
 
       setNameMessage("ユーザー名を変更しました。");
       setUsername(""); // 成功後にフィールドをクリア
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      setNameMessage(`変更に失敗しました: ${errorMessage}`);
-      logError('ユーザー名変更', error);
+      setNameMessage("変更に失敗しました: エラーが発生しました");
     } finally {
       setIsChangingUsername(false);
     }
@@ -140,17 +125,12 @@ export const SettingsScreen = () => {
     setDeleteMessage("");
 
     try {
-      await api.delete('/api/users', { 
-        timeout: 15000 // 退会処理は少し長めのタイムアウト
-      });
+      await api.delete('/api/users');
 
       setDeleteMessage("退会しました。ご利用ありがとうございました。");
-      // React Routerを使って遷移
       navigate("/");
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      setDeleteMessage(`退会処理に失敗しました: ${errorMessage}`);
-      logError('アカウント削除', error);
+      setDeleteMessage("退会処理に失敗しました: エラーが発生しました");
     } finally {
       setIsDeletingAccount(false);
     }

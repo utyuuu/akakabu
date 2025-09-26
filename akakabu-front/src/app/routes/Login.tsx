@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./../hooks/useAuth";
-import { validateEmail, validatePassword } from "../utils/errorHandler";
 
 const Login = () => {
   const [email, setEmail] = useState<string>("");
@@ -45,7 +44,9 @@ const Login = () => {
       return;
     }
 
-    if (!validateEmail(email)) {
+    // メールアドレスの正規表現
+    const emailRegex = /^[a-zA-Z0-9_.+-]+@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
       setError("メールアドレスの形式が正しくありません。");
       return;
     }
@@ -55,9 +56,8 @@ const Login = () => {
       return;
     }
 
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
-      setError(passwordValidation.message);
+    if (password.length < 8) {
+      setError("パスワードは8文字以上で入力してください。");
       return;
     }
 
