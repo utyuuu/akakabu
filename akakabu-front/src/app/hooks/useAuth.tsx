@@ -81,7 +81,9 @@ export const useAuth = () => {
           loading: false,
           error: null
         });
+        console.log("signIn setAuthState", result);
         return { success: true, message: result.message };
+        
       } else {
         setAuthState(prev => ({ ...prev, loading: false }));
         return { success: false, message: result.message };
