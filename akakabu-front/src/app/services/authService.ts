@@ -30,8 +30,6 @@ export class AuthService {
         };
       }
 
-      // ユーザー情報はトリガーで自動作成されるため、ここでは何もしない
-      // 必要に応じて追加のプロフィール情報を更新
 
       return {
         success: true,
@@ -60,6 +58,8 @@ export class AuthService {
         email,
         password
       });
+      console.log("signIn authData:", authData);
+      console.log("signIn error:", authError);
 
       if (authError) {
         console.error('Supabase signin auth error', authError);
