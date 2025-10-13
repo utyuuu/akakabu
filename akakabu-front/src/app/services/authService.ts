@@ -30,6 +30,25 @@ export class AuthService {
         };
       }
 
+      const {error: userInsertError} = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          user_name: user_name,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (userInsertError) {
+        console.error('User insert error', userInsertError);
+        return {
+          success: false,
+          message: 'ユーザーの作成に失敗しました'
+        };
+      } else {
+        console.log('User inserted successfully');
+      }
+
 
       return {
         success: true,
@@ -85,24 +104,6 @@ export class AuthService {
 
       if (userError) {
         console.error('User data fetch error', userError);
-        
-        // フォールバック: usersテーブルにデータがない場合は手動で作成
-        if (userError.code === 'PGRST116') {
-          console.log('Users table data not found, creating fallback user data');
-          
-          const fallbackUser: User = {
-            id: authData.user.id,
-            user_name: authData.user.user_metadata?.user_name || 'User',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          
-          return {
-            success: true,
-            message: 'ログイン成功（フォールバック）',
-            user: fallbackUser
-          };
-        }
         
         return {
           success: false,
