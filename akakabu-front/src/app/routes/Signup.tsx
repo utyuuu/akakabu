@@ -78,7 +78,7 @@ const Signup = () => {
     setSuccess("");
 
     try {
-      const result = await signup(email.trim(), user.trim(), password1);
+      const result = await signup(email.trim(), password1, user.trim());
 
       if (result.success) {
         setSuccess("登録成功！メールを確認してください。");
