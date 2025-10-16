@@ -1,9 +1,37 @@
 import { supabase, User } from '../utils/supabaseClient';
 
 export class AuthService {
+  // Supabaseエラーメッセージを日本語化
+  private static translateAuthError(errorMessage: string): string {
+    const errorMap: Record<string, string> = {
+      'Password should be at least 6 characters': 'パスワードは6文字以上で入力してください',
+      'User already registered': 'このメールアドレスは既に登録されています',
+      'Invalid email': 'メールアドレスの形式が正しくありません',
+      'Email not confirmed': 'メールアドレスが確認されていません',
+      'Invalid login credentials': 'メールアドレスまたはパスワードが正しくありません',
+    };
+
+    for (const [key, value] of Object.entries(errorMap)) {
+      if (errorMessage.includes(key)) {
+        return value;
+      }
+    }
+    return errorMessage;
+  }
+
   // サインアップ
   static async signUp(email: string, password: string, user_name: string): Promise<{ success: boolean; message: string; user?: User }> {
     try {
+      // デバッグログ
+      console.log('[authService.ts] signUp called with:', {
+        email,
+        emailLength: email.length,
+        password: '***' + password.slice(-2),
+        passwordLength: password.length,
+        user_name,
+        userNameLength: user_name.length
+      });
+
       // Supabaseでサインアップ
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -17,9 +45,10 @@ export class AuthService {
 
       if (authError) {
         console.error('Supabase signup auth error', authError);
+        const translatedMessage = this.translateAuthError(authError.message);
         return {
           success: false,
-          message: authError.message || 'サインアップに失敗しました'
+          message: translatedMessage || 'サインアップに失敗しました'
         };
       }
 
@@ -73,18 +102,30 @@ export class AuthService {
   // ログイン
   static async signIn(email: string, password: string): Promise<{ success: boolean; message: string; user?: User }> {
     try {
+      // デバッグログ
+      console.log('[authService.ts] signIn called with:', {
+        email,
+        emailLength: email.length,
+        password: '***' + password.slice(-2),
+        passwordLength: password.length
+      });
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      console.log("signIn authData:", authData);
-      console.log("signIn error:", authError);
+      console.log("[authService.ts] signIn authData:", {
+        hasUser: !!authData?.user,
+        userId: authData?.user?.id
+      });
+      console.log("[authService.ts] signIn error:", authError);
 
       if (authError) {
         console.error('Supabase signin auth error', authError);
+        const translatedMessage = this.translateAuthError(authError.message);
         return {
           success: false,
-          message: authError.message || 'ログインに失敗しました'
+          message: translatedMessage || 'ログインに失敗しました'
         };
       }
 

@@ -71,9 +71,23 @@ export const useAuth = () => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; message: string }> => {
     try {
+      // デバッグログ
+      console.log('[useAuth.tsx] login called with:', {
+        email,
+        emailLength: email.length,
+        password: '***' + password.slice(-2),
+        passwordLength: password.length
+      });
+
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
       const result = await AuthService.signIn(email, password);
+      
+      console.log('[useAuth.tsx] AuthService.signIn result:', {
+        success: result.success,
+        message: result.message,
+        hasUser: !!result.user
+      });
       
       if (result.success && result.user) {
         setAuthState({
@@ -81,14 +95,19 @@ export const useAuth = () => {
           loading: false,
           error: null
         });
-        console.log("signIn setAuthState", result);
+        console.log("[useAuth.tsx] signIn setAuthState success:", {
+          userId: result.user.id,
+          userName: result.user.user_name
+        });
         return { success: true, message: result.message };
         
       } else {
+        console.log('[useAuth.tsx] signIn failed, updating state');
         setAuthState(prev => ({ ...prev, loading: false }));
         return { success: false, message: result.message };
       }
     } catch (error) {
+      console.error('[useAuth.tsx] login error:', error);
       setAuthState(prev => ({ ...prev, loading: false, error: 'ログインに失敗しました' }));
       return { success: false, message: 'ログインに失敗しました' };
     }
@@ -96,9 +115,25 @@ export const useAuth = () => {
 
   const signup = async (email: string, password: string, user_name: string): Promise<{ success: boolean; message: string }> => {
     try {
+      // デバッグログ
+      console.log('[useAuth.tsx] signup called with:', {
+        email,
+        emailLength: email.length,
+        password: '***' + password.slice(-2),
+        passwordLength: password.length,
+        user_name,
+        userNameLength: user_name.length
+      });
+
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       
       const result = await AuthService.signUp(email, password, user_name);
+      
+      console.log('[useAuth.tsx] AuthService.signUp result:', {
+        success: result.success,
+        message: result.message,
+        hasUser: !!result.user
+      });
       
       if (result.success && result.user) {
         setAuthState({
