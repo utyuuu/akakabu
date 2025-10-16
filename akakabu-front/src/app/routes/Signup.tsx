@@ -77,6 +77,16 @@ const Signup = () => {
     setError("");
     setSuccess("");
 
+    // デバッグログ
+    console.log('[Signup.tsx] Calling signup with:', {
+      email: email.trim(),
+      emailLength: email.trim().length,
+      password: '***' + password1.slice(-2),
+      passwordLength: password1.length,
+      userName: user.trim(),
+      userNameLength: user.trim().length
+    });
+
     try {
       const result = await signup(email.trim(), password1, user.trim());
 

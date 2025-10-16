@@ -32,7 +32,14 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('[Login.tsx] useEffect triggered:', {
+      loading,
+      hasUser: !!user,
+      userId: user?.id
+    });
+    
     if (!loading && user) {
+      console.log('[Login.tsx] User authenticated, navigating to home');
       navigate("/");
     }
   }, [loading, user, navigate]);
@@ -64,12 +71,27 @@ const Login = () => {
     setIsLoggingIn(true);
     setError("");
 
+    // デバッグログ
+    console.log('[Login.tsx] Calling login with:', {
+      email: email.trim(),
+      emailLength: email.trim().length,
+      password: '***' + password.slice(-2),
+      passwordLength: password.length
+    });
+
     try {
       const result = await login(email.trim(), password);
+      
+      console.log('[Login.tsx] login result:', {
+        success: result.success,
+        message: result.message
+      });
 
       if (result.success) {
+        console.log('[Login.tsx] Login success, navigating to home');
         navigate("/");
       } else {
+        console.log('[Login.tsx] Login failed:', result.message);
         setError(result.message);
       }
     } catch (error) {
