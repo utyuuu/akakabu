@@ -32,6 +32,8 @@ export class AuthService {
         userNameLength: user_name.length
       });
 
+      console.log('[authService.ts] About to call supabase.auth.signUp');
+      
       // Supabaseでサインアップ
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -43,8 +45,14 @@ export class AuthService {
         }
       });
 
+      console.log('[authService.ts] signUp completed, result:', {
+        hasUser: !!authData?.user,
+        userId: authData?.user?.id,
+        hasError: !!authError
+      });
+
       if (authError) {
-        console.error('Supabase signup auth error', authError);
+        console.error('[authService.ts] Supabase signup auth error:', authError);
         const translatedMessage = this.translateAuthError(authError.message);
         return {
           success: false,
@@ -59,6 +67,8 @@ export class AuthService {
         };
       }
 
+      console.log('[authService.ts] Inserting user data into database for id:', authData.user.id);
+      
       const {error: userInsertError} = await supabase
         .from('users')
         .insert({
@@ -69,7 +79,7 @@ export class AuthService {
         });
 
       if (userInsertError) {
-        console.error('User insert error', userInsertError);
+        console.error('[authService.ts] User insert error:', userInsertError);
         return {
           success: false,
           message: 'ユーザーの作成に失敗しました'
@@ -91,7 +101,11 @@ export class AuthService {
       };
 
     } catch (error) {
-      console.error('Signup error', error);
+      console.error('[authService.ts] Signup error caught:', error);
+      console.error('[authService.ts] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return {
         success: false,
         message: `サインアップエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -110,11 +124,18 @@ export class AuthService {
         passwordLength: password.length
       });
 
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      console.log('[authService.ts] About to call supabase.auth.signInWithPassword');
+      
+      const signInPromise = supabase.auth.signInWithPassword({
         email,
         password
       });
-      console.log("[authService.ts] signIn authData:", {
+      
+      console.log('[authService.ts] signInWithPassword promise created:', signInPromise);
+      
+      const { data: authData, error: authError } = await signInPromise;
+      
+      console.log("[authService.ts] signIn completed, authData:", {
         hasUser: !!authData?.user,
         userId: authData?.user?.id
       });
@@ -137,14 +158,21 @@ export class AuthService {
       }
 
       // ユーザー情報を取得
+      console.log('[authService.ts] Fetching user data from database for id:', authData.user.id);
+      
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', authData.user.id)
         .single();
 
+      console.log('[authService.ts] User data fetch result:', {
+        hasUserData: !!userData,
+        hasError: !!userError
+      });
+
       if (userError) {
-        console.error('User data fetch error', userError);
+        console.error('[authService.ts] User data fetch error:', userError);
         
         return {
           success: false,
@@ -159,7 +187,11 @@ export class AuthService {
       };
 
     } catch (error) {
-      console.error('Signin error', error);
+      console.error('[authService.ts] Signin error caught:', error);
+      console.error('[authService.ts] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return {
         success: false,
         message: `ログインエラー: ${error instanceof Error ? error.message : 'Unknown error'}`
