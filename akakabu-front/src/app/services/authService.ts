@@ -125,6 +125,11 @@ export class AuthService {
       });
 
       console.log('[authService.ts] About to call supabase.auth.signInWithPassword');
+      console.log('[authService.ts] Environment check:', {
+        hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
+        supabaseUrlPrefix: import.meta.env.VITE_SUPABASE_URL?.substring(0, 30) + '...',
+        hasAnonKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+      });
       
       const signInPromise = supabase.auth.signInWithPassword({
         email,
@@ -133,7 +138,11 @@ export class AuthService {
       
       console.log('[authService.ts] signInWithPassword promise created:', signInPromise);
       
+      console.log('[authService.ts] Starting to await signInPromise...');
+      
       const { data: authData, error: authError } = await signInPromise;
+      
+      console.log('[authService.ts] signInPromise resolved, checking result...');
       
       console.log("[authService.ts] signIn completed, authData:", {
         hasUser: !!authData?.user,
