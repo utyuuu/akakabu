@@ -7,6 +7,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+console.log('supabaseUrl', supabaseUrl);
+console.log('supabaseAnonKey', supabaseAnonKey);  
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
