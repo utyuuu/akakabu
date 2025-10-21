@@ -139,8 +139,12 @@ export class AuthService {
       console.log('[authService.ts] signInWithPassword promise created:', signInPromise);
       
       console.log('[authService.ts] Starting to await signInPromise...');
+
+      console.log('[authService.ts] await前到達')
       
       const { data: authData, error: authError } = await signInPromise;
+      
+      console.log('[authService.ts] await後到達')
       
       console.log('[authService.ts] signInPromise resolved, checking result...');
       
