@@ -24,18 +24,21 @@ export const useAuth = () => {
       setAuthState(prev => ({ ...prev, loading: false }));
     }, 5000);
     
-    // 認証状態の変更を監視
-    const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
-      setAuthState({
-        user,
-        loading: false,
-        error: null
-      });
-    });
+    // 認証状態の変更を監視 - 一時的に無効化してデッドロックをテスト
+    console.log('[useAuth.tsx] onAuthStateChange listener DISABLED for testing');
+    // const { data: { subscription } } = AuthService.onAuthStateChange((user) => {
+    //   console.log('[useAuth.tsx] onAuthStateChange fired with user:', !!user);
+    //   setAuthState({
+    //     user,
+    //     loading: false,
+    //     error: null
+    //   });
+    // });
 
     return () => {
+      console.log('[useAuth.tsx] Cleaning up useEffect');
       clearTimeout(timeout);
-      subscription.unsubscribe();
+      // subscription.unsubscribe();
     };
   }, []);
 
