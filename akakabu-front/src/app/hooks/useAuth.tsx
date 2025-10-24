@@ -93,15 +93,17 @@ export const useAuth = () => {
       });
       
       if (result.success && result.user) {
+        console.log('[useAuth.tsx] About to update auth state with user:', result.user.id);
         setAuthState({
           user: result.user,
           loading: false,
           error: null
         });
-        console.log("[useAuth.tsx] signIn setAuthState success:", {
-          userId: result.user.id,
-          userName: result.user.user_name
-        });
+        console.log("[useAuth.tsx] Auth state updated successfully");
+        
+        // state更新を確認するため、少し待ってから戻り値を返す
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
         return { success: true, message: result.message };
         
       } else {
