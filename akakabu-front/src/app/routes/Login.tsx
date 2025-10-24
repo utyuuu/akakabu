@@ -89,7 +89,11 @@ const Login = () => {
 
       if (result.success) {
         console.log('[Login.tsx] Login success, navigating to home');
-        navigate("/");
+        // useEffectに依存せず、直接navigateを呼ぶ
+        setTimeout(() => {
+          console.log('[Login.tsx] Executing navigate after timeout');
+          navigate("/");
+        }, 100);
       } else {
         console.log('[Login.tsx] Login failed:', result.message);
         setError(result.message);
